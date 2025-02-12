@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
   },
   caption: {
     marginTop: hp('0.5%'),
+    padding: wp('2%'),
     backgroundColor: "red",
     color: "white",
     fontSize: RFValue(12),

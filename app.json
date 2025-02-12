@@ -20,7 +20,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.oemarms.Ogavi",
+      "blockedPermissions": [
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +36,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "7b1e5768-aeb4-4e12-8b16-29efa1fcdae9"
+      }
+    },
+    "owner": "oemarms"
   }
 }
