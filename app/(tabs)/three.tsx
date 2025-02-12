@@ -21,7 +21,7 @@ import { RFValue } from 'react-native-responsive-fontsize';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as Font from 'expo-font';
 
-const Template1: React.FC = () => {
+const Template3: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<{ uri: string, width: number, height: number } | null>(null);
   const [captionText, setCaptionText] = useState('');
   const [fontSize, setFontSize] = useState(14); // State untuk ukuran font
@@ -55,7 +55,7 @@ const Template1: React.FC = () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3], // Rasio 4:3 untuk gambar
+      aspect: [16, 9],
       quality: 1,
     });
 
@@ -102,7 +102,7 @@ const Template1: React.FC = () => {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.inner}>
-            <Text style={styles.header}>Template 4:3</Text>
+            <Text style={styles.header}>Template 16:9</Text>
             <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 1 }}>
               <View style={styles.imageContainer}>
                 {selectedImage ? (
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: wp('88%'),
-    aspectRatio: 4/3, // Rasio 4:3
+    aspectRatio: 16/9,
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
@@ -257,4 +257,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Template1;
+export default Template3;

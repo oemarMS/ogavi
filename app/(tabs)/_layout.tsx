@@ -56,6 +56,13 @@ export default function TabLayout() {
           title: 'Template 2',
         }}
       />
+      <Tabs.Screen
+        name="three"
+        options={{
+          ...commonOptions,
+          title: 'Template 3',
+        }}
+      />
     </Tabs>
   );
 }
