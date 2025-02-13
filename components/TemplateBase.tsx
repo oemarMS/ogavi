@@ -46,6 +46,21 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
     'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
   });
 
+  //useEffect buat make sure font ke-load
+  useEffect(() => {
+    const loadFonts = async () => {
+      try {
+        await Font.loadAsync({
+          'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
+        });
+      } catch (error) {
+        console.log('Error loading fonts:', error);
+      }
+    };
+    
+    loadFonts();
+  }, []);
+
   // Refs setup
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
@@ -104,7 +119,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
         setSelectedImage(result.assets[0]);
       }
     } catch (error) {
-      Alert.alert("Ups!", "Ada masalah pas ambil foto nih");
+      Alert.alert("Ups!", "Ada masalah ketika mengambil foto");
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +128,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
   const saveToGallery = async () => {
     try {
       if (!selectedImage) {
-        Alert.alert("Eh!", "Pilih foto dulu dong sebelum simpan 😅");
+        Alert.alert("Pilih foto dulu sebelum disimpan 😅");
         return;
       }
 
@@ -129,19 +144,21 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
         setIsLoading(true);
         const uri = await viewShotRef.current.capture();
         await MediaLibrary.saveToLibraryAsync(uri);
-        Alert.alert("🎉 Mantap!", "Foto lu udah kesimpen di galeri!");
+        Alert.alert("🎉 Foto berhasil tersimpan di galeri");
       }
     } catch (error) {
-      console.log("Error pas nyimpen:", error);
-      Alert.alert("Waduh!", "Sorry nih, ada error pas nyimpen. Coba lagi ya!");
+      console.log("Error ketika menyimpan:", error);
+      Alert.alert("Maaf, ada error ketika menyimpan. Coba lagi ya!");
     } finally {
       setIsLoading(false);
     }
   };
 
   if (!fontsLoaded) {
+    console.log('Fonts not loaded yet...');
     return (
       <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6A1B9A" />
         <Text style={styles.loadingText}>Loading fonts...</Text>
       </View>
     );
@@ -183,7 +200,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
                   style={[styles.caption, { fontSize: fontSize }]}
                   value={captionText}
                   onChangeText={handleTextChange}
-                  placeholder="Ketik keterangan gambar di sini..."
+                  placeholder="Tuliskan keterangan gambar di sini..."
                   placeholderTextColor="#ffffff80"
                   multiline={true}
                   textAlignVertical="top"
@@ -271,10 +288,20 @@ const styles = StyleSheet.create({
     fontSize: RFValue(12),
     fontWeight: "bold",
     fontFamily: 'Roboto',
+    fontStyle: 'normal',
     maxHeight: hp('20%'),
     textAlignVertical: 'center',
     flexGrow: 1,
     flexWrap: 'wrap',
+    // Force Roboto di semua platform
+    ...Platform.select({
+      ios: {
+        fontFamily: 'Roboto',
+      },
+      android: {
+        fontFamily: 'Roboto',
+      }
+    }),
   },
   button: {
     marginTop: hp('2%'),
