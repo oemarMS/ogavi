@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { 
   View, 
   Text, 
@@ -22,7 +22,7 @@ import { RFValue } from 'react-native-responsive-fontsize';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as Font from 'expo-font';
 
-const Template1: React.FC = () => {
+const Template3: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<{ uri: string, width: number, height: number } | null>(null);
   const [captionText, setCaptionText] = useState('');
   const [fontSize, setFontSize] = useState(14);
@@ -31,17 +31,6 @@ const Template1: React.FC = () => {
   const [fontsLoaded] = Font.useFonts({
     'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
   });
-
-  useEffect(() => {
-    const requestPermission = async () => {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Izin Ditolak', 'Maaf, kami butuh izin untuk bisa menyimpan gambar ke galeri!');
-      }
-    };
-
-    requestPermission();
-  }, []);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
@@ -71,7 +60,7 @@ const Template1: React.FC = () => {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
+        aspect: [16, 9],
         quality: 1,
       });
 
@@ -88,13 +77,7 @@ const Template1: React.FC = () => {
   const saveToGallery = async () => {
     try {
       if (!selectedImage) {
-        Alert.alert("Pilih foto dulu sebelum simpan");
-        return;
-      }
-
-      const { status } = await MediaLibrary.getPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Izin Ditolak', 'Maaf, aplikasi butuh izin untuk bisa menyimpan gambar ke galeri!');
+        Alert.alert("Eh!", "Pilih foto dulu dong sebelum simpan 😅");
         return;
       }
 
@@ -102,11 +85,11 @@ const Template1: React.FC = () => {
         setIsLoading(true);
         const uri = await viewShotRef.current.capture();
         await MediaLibrary.saveToLibraryAsync(uri);
-        Alert.alert("🎉 Foto telah tersimpan di galeri!");
+        Alert.alert("🎉 Mantap!", "Foto lu udah kesimpen di galeri!");
       }
     } catch (error) {
-      console.log("Error saat menyimpan:", error);
-      Alert.alert("Maaf", "ada error ketika menyimpan. Coba lagi ya!");
+      console.log("Error pas nyimpen:", error);
+      Alert.alert("Waduh!", "Sorry nih, ada error pas nyimpen. Coba lagi ya!");
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +117,7 @@ const Template1: React.FC = () => {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.inner}>
-            <Text style={styles.header}>Template 4:3</Text>
+            <Text style={styles.header}>Template 16:9</Text>
             <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 1 }}>
               <View style={styles.imageContainer}>
                 {selectedImage ? (
@@ -220,7 +203,7 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: wp('88%'),
-    aspectRatio: 4/3,
+    aspectRatio: 16/9,
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
@@ -287,7 +270,7 @@ const styles = StyleSheet.create({
   slider: {
     width: wp('80%'),
     height: 40,
-  marginTop: 10,
+    marginTop: 10,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -298,4 +281,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Template1;
+export default Template3;
