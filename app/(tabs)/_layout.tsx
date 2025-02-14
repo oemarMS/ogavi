@@ -19,7 +19,7 @@ export default function TabLayout() {
 
   const commonOptions = {
     headerTitle: 'Ogavi', // Menetapkan "Ogavi" sebagai judul header untuk semua tab
-    tabBarIcon: ({ color }: { color: string }) => <TabBarIcon name="code" color={color} />,
+    tabBarIcon: ({ color }: { color: string }) => <TabBarIcon name="angle-up" color={color} />,
     headerRight: () => (
       <Link href="/modal" asChild>
         <Pressable>

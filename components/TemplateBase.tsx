@@ -34,32 +34,14 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
   title,
   needsPermission = false
 }) => {
+  
+  
   // State management
   const [selectedImage, setSelectedImage] = useState<{ uri: string, width: number, height: number } | null>(null);
   const [captionText, setCaptionText] = useState('');
   const [fontSize, setFontSize] = useState(14);
   const [tempFontSize, setTempFontSize] = useState(14);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Font loading
-  const [fontsLoaded] = Font.useFonts({
-    'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
-  });
-
-  //useEffect buat make sure font ke-load
-  useEffect(() => {
-    const loadFonts = async () => {
-      try {
-        await Font.loadAsync({
-          'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
-        });
-      } catch (error) {
-        console.log('Error loading fonts:', error);
-      }
-    };
-    
-    loadFonts();
-  }, []);
 
   // Refs setup
   const scrollViewRef = useRef<ScrollView>(null);
@@ -153,6 +135,28 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
       setIsLoading(false);
     }
   };
+
+  // Font loading
+  const [fontsLoaded] = Font.useFonts({
+    'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
+    'RobotoBold': require('../assets/fonts/Roboto-Bold.ttf'),
+  });
+
+  //useEffect buat make sure font ke-load
+  useEffect(() => {
+    const loadFonts = async () => {
+      try {
+        await Font.loadAsync({
+          'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
+          'RobotoBold': require('../assets/fonts/Roboto-Bold.ttf'),
+        });
+      } catch (error) {
+        console.log('Error loading fonts:', error);
+      }
+    };
+    
+    loadFonts();
+  }, []);
 
   if (!fontsLoaded) {
     console.log('Fonts not loaded yet...');
@@ -255,9 +259,8 @@ const styles = StyleSheet.create({
     paddingBottom: hp('2%'),
   },
   header: {
+    fontFamily: 'RobotoBold',
     fontSize: RFValue(24),
-    fontFamily: 'Roboto',
-    fontWeight: "bold",
     color: "#6A1B9A",
     marginBottom: hp('2%'),
   },
@@ -275,33 +278,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: 'center',
   },
+  buttonText: {
+    fontFamily: 'RobotoBold',
+    color: "#6A1B9A",
+    fontSize: RFValue(16),
+  },
   placeholderText: {
-    fontFamily: 'Roboto',
+   fontFamily: 'Roboto',
     fontSize: RFValue(14),
     color: '#666',
   },
   caption: {
+    fontFamily: 'RobotoBold',
+    // Force Roboto di semua platform
+    ...Platform.select({
+      ios: {
+        fontFamily: 'RobotoBold',
+      },
+      android: {
+        fontFamily: 'RobotoBold',
+      }
+    }),
     marginTop: hp('0.5%'),
     padding: wp('2%'),
     backgroundColor: "red",
     color: "white",
     fontSize: RFValue(12),
-    fontWeight: "bold",
-    fontFamily: 'Roboto',
     fontStyle: 'normal',
     maxHeight: hp('20%'),
     textAlignVertical: 'center',
     flexGrow: 1,
     flexWrap: 'wrap',
-    // Force Roboto di semua platform
-    ...Platform.select({
-      ios: {
-        fontFamily: 'Roboto',
-      },
-      android: {
-        fontFamily: 'Roboto',
-      }
-    }),
   },
   button: {
     marginTop: hp('2%'),
@@ -312,12 +319,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: wp('50%'),
   },
-  buttonText: {
-    color: "#6A1B9A",
-    fontSize: RFValue(16),
-    fontFamily: 'Roboto',
-    fontWeight: "bold",
-  },
   saveButton: {
     marginTop: hp('1%'),
     backgroundColor: "#6A1B9A",
@@ -327,10 +328,9 @@ const styles = StyleSheet.create({
     width: wp('50%'),
   },
   saveButtonText: {
+    fontFamily: 'RobotoBold',
     color: "white",
     fontSize: RFValue(16),
-    fontFamily: 'Roboto',
-    fontWeight: "bold",
   },
   fontSizeControl: {
     marginTop: hp('2%'),
@@ -339,9 +339,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   fontSizeText: {
-    fontSize: RFValue(16),
     fontFamily: 'Roboto',
-    fontWeight: 'bold',
+    fontSize: RFValue(16),
   },
   slider: {
     width: wp('80%'),
