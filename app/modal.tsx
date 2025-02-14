@@ -37,12 +37,12 @@ export default function AboutScreen() {
         
         <View style={styles.screenshotContainer}>
           <Image 
-            source={require('@/assets/images/favicon.png')}
+            source={require('@/assets/images/ss1.jpg')}
             style={styles.screenshot}
             resizeMode='contain'
           />
           <Image 
-            source={require('@/assets/images/favicon.png')}
+            source={require('@/assets/images/ss2.jpg')}
             style={styles.screenshot}
             resizeMode='contain'
           />

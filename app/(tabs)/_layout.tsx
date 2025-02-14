@@ -2,7 +2,7 @@ import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, Tabs } from 'expo-router';
 import { Pressable } from 'react-native';
-
+import { StatusBar } from 'expo-status-bar';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
@@ -16,7 +16,6 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
   const commonOptions = {
     headerTitle: 'Ogavi', // Menetapkan "Ogavi" sebagai judul header untuk semua tab
     tabBarIcon: ({ color }: { color: string }) => <TabBarIcon name="angle-up" color={color} />,
@@ -37,7 +36,7 @@ export default function TabLayout() {
   };
 
   return (
-    <Tabs
+    <><StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} /><Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: useClientOnlyValue(false, true),
@@ -47,22 +46,19 @@ export default function TabLayout() {
         options={{
           ...commonOptions,
           title: 'Template 1',
-        }}
-      />
+        }} />
       <Tabs.Screen
         name="two"
         options={{
           ...commonOptions,
           title: 'Template 2',
-        }}
-      />
+        }} />
       <Tabs.Screen
         name="three"
         options={{
           ...commonOptions,
           title: 'Template 3',
-        }}
-      />
-    </Tabs>
+        }} />
+    </Tabs></>
   );
 }
