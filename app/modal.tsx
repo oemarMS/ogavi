@@ -1,25 +1,39 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet, Image, ScrollView } from 'react-native';
+import { Platform, StyleSheet, Image, ScrollView, useColorScheme } from 'react-native';
 import { Text, View } from '@/components/Themed';
 
 export default function AboutScreen() {
+  const colorScheme = useColorScheme();
+
   return (
-    <View style={styles.container}>
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+    <View style={[
+      styles.container,
+      { backgroundColor: colorScheme === 'dark' ? '#1c1c1c' : '#fff' }
+    ]}>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       
-      <Text style={styles.appbar}>Tentang Aplikasi</Text>
+      <Text style={[
+        styles.appbar,
+        { color: colorScheme === 'dark' ? '#B39DDB' : '#6A1B9A' }
+      ]}>Tentang Aplikasi</Text>
       
       <ScrollView contentContainerStyle={styles.content}>
         <Image 
           source={require('@/assets/images/appicon.png')}
           style={styles.logo}
         />
-        <Text style={styles.subtitle}>Aplikasi Pengeditan Foto dengan Caption</Text>
+        <Text style={[
+          styles.subtitle,
+          { color: colorScheme === 'dark' ? '#e0e0e0' : '#555' }
+        ]}>Aplikasi Pengeditan Foto dengan Caption</Text>
         
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
         
-        <Text style={styles.description}>
+        <Text style={[
+          styles.description,
+          { color: colorScheme === 'dark' ? '#e0e0e0' : '#000' }
+        ]}>
           Ogavi adalah sebuah aplikasi pengeditan foto yang memungkinkan pengguna untuk 
           dengan mudah menambahkan caption atau keterangan pada foto-foto mereka. 
           Dengan Ogavi, Anda dapat mengambil foto dari galeri perangkat, menuliskan 
@@ -28,7 +42,10 @@ export default function AboutScreen() {
           terintegrasi secara permanen.
         </Text>
         
-        <Text style={styles.description}>
+        <Text style={[
+          styles.description,
+          { color: colorScheme === 'dark' ? '#e0e0e0' : '#000' }
+        ]}>
           Aplikasi ini sangat cocok bagi pengguna yang ingin memberikan judul, 
           deskripsi, atau keterangan tambahan pada foto-foto mereka, baik itu foto 
           liburan, makanan, momen spesial, atau foto lainnya yang ingin dibagikan 
@@ -56,12 +73,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: Platform.OS === 'ios' ? 50 : 30,
-    backgroundColor: '#fff',
   },
   appbar: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: "#6A1B9A",
     marginTop: 20,
     marginBottom: 20,
     paddingHorizontal: 20,
@@ -78,7 +93,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 18,
-    color: '#555',
   },
   separator: {
     marginVertical: 20,
@@ -99,6 +113,6 @@ const styles = StyleSheet.create({
   },
   screenshot: {
     width: '45%',
-    height: 400, 
+    height: 400,
   },
 });
