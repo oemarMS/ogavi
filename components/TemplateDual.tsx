@@ -22,22 +22,20 @@ import { RFValue } from 'react-native-responsive-fontsize';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as Font from 'expo-font';
 
-// Props interface buat customization
-interface TemplateBaseProps {
-  aspectRatio: number;     // Buat ngatur ratio image (e.g., 4/3, 3/4, 16/9)
-  title: string;          // Title template (e.g., "Template 4:3")
-  needsPermission?: boolean; // Optional permission check
+interface TemplateDualProps {
+  aspectRatio: number;
+  title: string;
+  needsPermission?: boolean;
 }
 
-const TemplateBase: React.FC<TemplateBaseProps> = ({
+const TemplateDual: React.FC<TemplateDualProps> = ({
   aspectRatio,
   title,
   needsPermission = false
 }) => {
-  
-  
   // State management
-  const [selectedImage, setSelectedImage] = useState<{ uri: string, width: number, height: number } | null>(null);
+  const [leftImage, setLeftImage] = useState<{ uri: string, width: number, height: number } | null>(null);
+  const [rightImage, setRightImage] = useState<{ uri: string, width: number, height: number } | null>(null);
   const [captionText, setCaptionText] = useState('');
   const [fontSize, setFontSize] = useState(14);
   const [tempFontSize, setTempFontSize] = useState(14);
@@ -48,7 +46,6 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
   const inputRef = useRef<TextInput>(null);
   const viewShotRef = useRef<ViewShot>(null);
 
-  // Permission check (kalo needsPermission = true)
   useEffect(() => {
     if (needsPermission) {
       const requestPermission = async () => {
@@ -61,7 +58,6 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
     }
   }, [needsPermission]);
 
-  // Handlers
   const handleFocus = () => {
     setTimeout(() => {
       inputRef.current?.measureInWindow((x, y, width, height) => {
@@ -80,25 +76,26 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
     }, 100);
   };
 
-  const pickImage = async () => {
+  const pickImage = async (side: 'left' | 'right') => {
     setIsLoading(true);
     try {
-      // Kalo aspect ratio 4:3, array-nya harus [4, 3]
-      // Kalo 3:4, array-nya harus [3, 4]
-      // Kalo 16:9, array-nya harus [16, 9]
       const [width, height] = aspectRatio > 1 
-        ? [Math.round(aspectRatio * 10), 10]  // untuk ratio > 1 (misal 4:3)
-        : [10, Math.round((1/aspectRatio) * 10)];  // untuk ratio < 1 (misal 3:4)
-  
+        ? [Math.round(aspectRatio * 10), 10]
+        : [10, Math.round((1/aspectRatio) * 10)];
+
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [width, height],  // 👈 Fix aspect ratio disini
+        aspect: [width, height],
         quality: 1,
       });
 
       if (!result.canceled && result.assets.length > 0) {
-        setSelectedImage(result.assets[0]);
+        if (side === 'left') {
+          setLeftImage(result.assets[0]);
+        } else {
+          setRightImage(result.assets[0]);
+        }
       }
     } catch (error) {
       Alert.alert("Ups!", "Ada masalah ketika mengambil foto");
@@ -109,8 +106,8 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
 
   const saveToGallery = async () => {
     try {
-      if (!selectedImage) {
-        Alert.alert("Pilih foto dulu sebelum disimpan 😅");
+      if (!leftImage || !rightImage) {
+        Alert.alert("Pilih kedua foto dulu sebelum disimpan 😅");
         return;
       }
 
@@ -136,13 +133,11 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
     }
   };
 
-  // Font loading
   const [fontsLoaded] = Font.useFonts({
     'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
     'RobotoBold': require('../assets/fonts/Roboto-Bold.ttf'),
   });
 
-  //useEffect buat make sure font ke-load
   useEffect(() => {
     const loadFonts = async () => {
       try {
@@ -159,7 +154,6 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
   }, []);
 
   if (!fontsLoaded) {
-    console.log('Fonts not loaded yet...');
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#6A1B9A" />
@@ -188,37 +182,63 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
           <View style={styles.inner}>
             <Text style={styles.header}>{title}</Text>
             <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 1 }}>
-              <View style={styles.imageContainer}>
-                {selectedImage ? (
-                  <Image 
-                    source={{ uri: selectedImage.uri }} 
-                    style={[styles.placeholder, { aspectRatio }]} 
-                  />
-                ) : (
-                  <View style={[styles.placeholder, { aspectRatio }]}>
-                    <Text style={styles.placeholderText}>Pilih Gambar dari Galeri</Text>
-                  </View>
-                )}
-                <TextInput
-                  ref={inputRef}
-                  style={[styles.caption, { fontSize: fontSize }]}
-                  value={captionText}
-                  onChangeText={handleTextChange}
-                  placeholder="Tuliskan keterangan gambar di sini..."
-                  placeholderTextColor="#ffffff80"
-                  multiline={true}
-                  textAlignVertical="top"
-                  textAlign="center"
-                  blurOnSubmit={true}
-                  onBlur={() => Keyboard.dismiss()}
-                  onFocus={handleFocus}
-                />
-              </View>
-            </ViewShot>
+  <View style={styles.dualImageContainer}>
+    <View style={styles.imagesRow}>
+      {/* Left Image */}
+      <View style={styles.imageWrapper}>
+        {leftImage ? (
+          <Image 
+            source={{ uri: leftImage.uri }} 
+            style={[styles.placeholder, { aspectRatio }]} 
+          />
+        ) : (
+          <View style={[styles.placeholder, { aspectRatio }]}>
+            <Text style={styles.placeholderText}>Pilih Gambar Kiri</Text>
+          </View>
+        )}
+      </View>
+                
+                {/* Right Image */}
+      <View style={styles.imageWrapper}>
+        {rightImage ? (
+          <Image 
+            source={{ uri: rightImage.uri }} 
+            style={[styles.placeholder, { aspectRatio }]} 
+          />
+        ) : (
+          <View style={[styles.placeholder, { aspectRatio }]}>
+            <Text style={styles.placeholderText}>Pilih Gambar Kanan</Text>
+          </View>
+        )}
+      </View>
+    </View>
+                
+    <TextInput
+      ref={inputRef}
+      style={[styles.caption, { fontSize: fontSize }]}
+      value={captionText}
+      onChangeText={handleTextChange}
+      placeholder="Tuliskan keterangan gambar di sini..."
+      placeholderTextColor="#ffffff80"
+      multiline={true}
+      textAlignVertical="top"
+      textAlign="center"
+      blurOnSubmit={true}
+      onBlur={() => Keyboard.dismiss()}
+      onFocus={handleFocus}
+    />
+  </View>
+</ViewShot>
 
-            <TouchableOpacity style={styles.button} onPress={pickImage}>
-              <Text style={styles.buttonText}>PILIH GAMBAR</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.button} onPress={() => pickImage('left')}>
+                <Text style={styles.buttonText}>PILIH GAMBAR KIRI</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.button} onPress={() => pickImage('right')}>
+                <Text style={styles.buttonText}>PILIH GAMBAR KANAN</Text>
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity style={styles.saveButton} onPress={saveToGallery}>
               <Text style={styles.saveButtonText}>SIMPAN KE GALERI</Text>
@@ -264,42 +284,57 @@ const styles = StyleSheet.create({
     color: "#6A1B9A",
     marginBottom: hp('2%'),
   },
-  imageContainer: {
+  dualImageContainer: {
     width: wp('90%'),
     borderWidth: 1,
     borderColor: '#ccc',
     padding: wp('1%'),
     backgroundColor: '#fff',
+    flexDirection: 'column', // Changed to column
+  },
+  imagesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  imageWrapper: {
+    width: '49%', // Slightly less than 50% to account for spacing
   },
   placeholder: {
-    width: wp('88%'),
+    width: '100%',
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: 'center',
+    alignSelf: "center",
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: wp('90%'),
+    marginTop: hp('2%'),
+  },
+  button: {
+    padding: wp('3%'),
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: "#6A1B9A",
+    alignItems: "center",
+    width: wp('43%'),
   },
   buttonText: {
     fontFamily: 'RobotoBold',
     color: "#6A1B9A",
-    fontSize: RFValue(16),
+    fontSize: RFValue(12),
   },
   placeholderText: {
-   fontFamily: 'Roboto',
-    fontSize: RFValue(14),
+    fontFamily: 'Roboto',
+    fontSize: RFValue(12),
     color: '#666',
+    textAlign: 'center',
   },
   caption: {
     fontFamily: 'RobotoBold',
-    // Force Roboto di semua platform
-    ...Platform.select({
-      ios: {
-        fontFamily: 'RobotoBold',
-      },
-      android: {
-        fontFamily: 'RobotoBold',
-      }
-    }),
-    marginTop: hp('0.5%'),
+    marginTop: hp('0.5%'), // Add margin top
     padding: wp('2%'),
     backgroundColor: "red",
     color: "white",
@@ -308,17 +343,8 @@ const styles = StyleSheet.create({
     maxHeight: hp('20%'),
     textAlign: 'center',
   },
-  button: {
-    marginTop: hp('2%'),
-    padding: wp('3%'),
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: "#6A1B9A",
-    alignItems: "center",
-    width: wp('50%'),
-  },
   saveButton: {
-    marginTop: hp('1%'),
+    marginTop: hp('2%'),
     backgroundColor: "#6A1B9A",
     padding: wp('3%'),
     borderRadius: 100,
@@ -334,7 +360,6 @@ const styles = StyleSheet.create({
     marginTop: hp('2%'),
     width: wp('80%'),
     alignItems: 'center',
-    paddingHorizontal: 20,
   },
   fontSizeText: {
     fontFamily: 'Roboto',
@@ -365,4 +390,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TemplateBase;
+export default TemplateDual;
