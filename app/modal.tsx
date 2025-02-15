@@ -20,7 +20,7 @@ export default function AboutScreen() {
       
       <ScrollView contentContainerStyle={styles.content}>
         <Image 
-          source={require('@/assets/images/appicon.png')}
+          source={require('@/assets/images/icon.png')}
           style={styles.logo}
         />
         <Text style={[

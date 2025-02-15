@@ -27,7 +27,7 @@ const SplashScreen: React.FC = () => {
     <View style={styles.container}>
       <StatusBar style="dark" />
       <Image
-        source={require('../assets/images/appicon.png')}
+        source={require('../assets/images/icon.png')}
         style={styles.logo}
         resizeMode="contain"
       />
