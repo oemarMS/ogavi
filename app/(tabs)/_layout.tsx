@@ -17,7 +17,7 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const commonOptions = {
-    headerTitle: 'Ogavi', // Menetapkan "Ogavi" sebagai judul header untuk semua tab
+    headerTitle: 'Ogavi',
     tabBarIcon: ({ color }: { color: string }) => <TabBarIcon name="angle-up" color={color} />,
     headerRight: () => (
       <Link href="/modal" asChild>
@@ -42,48 +42,41 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: useClientOnlyValue(false, true),
       }}>
+      {/* Main Tabs */}
       <Tabs.Screen
         name="index"
         options={{
           ...commonOptions,
           title: 'Template 1',
-        }} />
+          tabBarIcon: ({ color }) => <TabBarIcon name="chevron-up" color={color} />,
+        }} 
+      />
       <Tabs.Screen
         name="two"
         options={{
           ...commonOptions,
           title: 'Template 2',
-        }} />
+          tabBarIcon: ({ color }) => <TabBarIcon name="chevron-up" color={color} />,
+        }} 
+      />
       <Tabs.Screen
         name="three"
         options={{
           ...commonOptions,
           title: 'Template 3',
-        }} />
-        <Tabs.Screen
-        name="four"
+          tabBarIcon: ({ color }) => <TabBarIcon name="chevron-up" color={color} />,
+        }} 
+      />
+      
+      {/* More Tab */}
+      <Tabs.Screen
+        name="morescreen"
         options={{
           ...commonOptions,
-          title: 'Template 4',
-        }} />
-        <Tabs.Screen
-        name="five"
-        options={{
-          ...commonOptions,
-          title: 'Template 5',
-        }} />
-        <Tabs.Screen
-        name="six"
-        options={{
-          ...commonOptions,
-          title: 'Template 6',
-        }} />
-        <Tabs.Screen
-        name="seven"
-        options={{
-          ...commonOptions,
-          title: 'Template 7',
-        }} />
+          title: 'More',
+          tabBarIcon: ({ color }) => <TabBarIcon name="ellipsis-h" color={color} />,
+        }}
+      />
     </Tabs></>
   );
 }
