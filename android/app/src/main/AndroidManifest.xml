@@ -27,6 +27,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
         <data android:scheme="com.oemarms.Ogavi"/>
+        <data android:scheme="exp+ogavi"/>
       </intent-filter>
     </activity>
   </application>
