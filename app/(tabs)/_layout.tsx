@@ -36,7 +36,8 @@ export default function TabLayout() {
   };
 
   return (
-    <><StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} /><Tabs
+    <><StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: useClientOnlyValue(false, true),
@@ -70,6 +71,18 @@ export default function TabLayout() {
         options={{
           ...commonOptions,
           title: 'Template 5',
+        }} />
+        <Tabs.Screen
+        name="six"
+        options={{
+          ...commonOptions,
+          title: 'Template 6',
+        }} />
+        <Tabs.Screen
+        name="seven"
+        options={{
+          ...commonOptions,
+          title: 'Template 7',
         }} />
     </Tabs></>
   );
