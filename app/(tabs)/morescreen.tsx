@@ -11,6 +11,7 @@ export default function MoreScreen() {
     { title: 'Template 5 - Dual Caption', route: '/(screen)/five' as const },
     { title: 'Template 6 - Dual Caption 2', route: '/(screen)/six' as const },
     { title: 'Template 7 - Quad Caption', route: '/(screen)/seven' as const },
+    { title: 'Template 8 - Template Video', route: '/(screen)/eight' as const },
   ];
 
   return (

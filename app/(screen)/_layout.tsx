@@ -27,6 +27,12 @@ export default function Layout() {
           title: 'Template 7 - Quad Caption'
         }}
       />
+      <Stack.Screen
+        name="eight"
+        options={{
+          title: 'Template 8 - Template Video'
+        }}
+      />
     </Stack>
   );
 }
