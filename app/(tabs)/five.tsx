@@ -1,6 +1,6 @@
 import TemplateDualCaption from '../../components/TemplateDualCaption';
 
-const Template4: React.FC = () => {
+const Template5: React.FC = () => {
   return (
     <TemplateDualCaption 
       aspectRatio={3/4} // atau rasio yang Anda inginkan
@@ -10,4 +10,4 @@ const Template4: React.FC = () => {
   );
 };
 
-export default Template4;
+export default Template5;
