@@ -3,6 +3,7 @@ Volume serial number is 6D4D-651D
 D:.
 ¦   .gitignore
 ¦   app.json
+¦   babel.config.js
 ¦   eas.json
 ¦   expo-env.d.ts
 ¦   package-lock.json
@@ -167,11 +168,34 @@ D:.
 ¦   ¦       _layout.tsx
 ¦   ¦       
 ¦   +---(tabs)
-¦           index.tsx
-¦           morescreen.tsx
-¦           three.tsx
-¦           two.tsx
-¦           _layout.tsx
+¦   ¦       index.tsx
+¦   ¦       morescreen.tsx
+¦   ¦       three.tsx
+¦   ¦       two.tsx
+¦   ¦       _layout.tsx
+¦   ¦       
+¦   +---components
+¦   ¦   ¦   EditScreenInfo.tsx
+¦   ¦   ¦   ExternalLink.tsx
+¦   ¦   ¦   splashscreen.tsx
+¦   ¦   ¦   StyledText.tsx
+¦   ¦   ¦   TemplateBase.tsx
+¦   ¦   ¦   TemplateDual.tsx
+¦   ¦   ¦   TemplateDualCaption.tsx
+¦   ¦   ¦   TemplateImgDual.tsx
+¦   ¦   ¦   TemplateImgQuad.tsx
+¦   ¦   ¦   TemplateVideo.tsx
+¦   ¦   ¦   Themed.tsx
+¦   ¦   ¦   useClientOnlyValue.ts
+¦   ¦   ¦   useClientOnlyValue.web.ts
+¦   ¦   ¦   useColorScheme.ts
+¦   ¦   ¦   useColorScheme.web.ts
+¦   ¦   ¦   
+¦   ¦   +---__tests__
+¦   ¦           StyledText-test.js
+¦   ¦           
+¦   +---constants
+¦           Colors.ts
 ¦           
 +---assets
 ¦   +---fonts
@@ -189,29 +213,6 @@ D:.
 ¦           ss1.jpg
 ¦           ss2.jpg
 ¦           
-+---components
-¦   ¦   EditScreenInfo.tsx
-¦   ¦   ExternalLink.tsx
-¦   ¦   splashscreen.tsx
-¦   ¦   StyledText.tsx
-¦   ¦   TemplateBase.tsx
-¦   ¦   TemplateDual.tsx
-¦   ¦   TemplateDualCaption.tsx
-¦   ¦   TemplateImgDual.tsx
-¦   ¦   TemplateImgQuad.tsx
-¦   ¦   TemplateVideo.tsx
-¦   ¦   Themed.tsx
-¦   ¦   useClientOnlyValue.ts
-¦   ¦   useClientOnlyValue.web.ts
-¦   ¦   useColorScheme.ts
-¦   ¦   useColorScheme.web.ts
-¦   ¦   
-¦   +---__tests__
-¦           StyledText-test.js
-¦           
-+---constants
-¦       Colors.ts
-¦       
 +---node_modules
     ¦   .package-lock.json
     ¦   
