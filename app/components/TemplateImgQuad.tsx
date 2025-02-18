@@ -142,8 +142,8 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
   };
 
   const [fontsLoaded] = Font.useFonts({
-    'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
-    'RobotoBold': require('../assets/fonts/Roboto-Bold.ttf'),
+    'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
+    'RobotoBold': require('../../assets/fonts/Roboto-Bold.ttf'),
   });
 
   if (!fontsLoaded) {

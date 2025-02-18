@@ -138,8 +138,8 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
 
   // Font loading
   const [fontsLoaded] = Font.useFonts({
-    'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
-    'RobotoBold': require('../assets/fonts/Roboto-Bold.ttf'),
+    'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
+    'RobotoBold': require('../../assets/fonts/Roboto-Bold.ttf'),
   });
 
   //useEffect buat make sure font ke-load
@@ -147,8 +147,8 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
     const loadFonts = async () => {
       try {
         await Font.loadAsync({
-          'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
-          'RobotoBold': require('../assets/fonts/Roboto-Bold.ttf'),
+          'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
+          'RobotoBold': require('../../assets/fonts/Roboto-Bold.ttf'),
         });
       } catch (error) {
         console.log('Error loading fonts:', error);

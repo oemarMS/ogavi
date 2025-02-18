@@ -134,16 +134,16 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
   };
 
   const [fontsLoaded] = Font.useFonts({
-    'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
-    'RobotoBold': require('../assets/fonts/Roboto-Bold.ttf'),
+    'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
+    'RobotoBold': require('../../assets/fonts/Roboto-Bold.ttf'),
   });
 
   useEffect(() => {
     const loadFonts = async () => {
       try {
         await Font.loadAsync({
-          'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
-          'RobotoBold': require('../assets/fonts/Roboto-Bold.ttf'),
+          'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
+          'RobotoBold': require('../../assets/fonts/Roboto-Bold.ttf'),
         });
       } catch (error) {
         console.log('Error loading fonts:', error);

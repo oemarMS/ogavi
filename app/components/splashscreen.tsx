@@ -7,8 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 const SplashScreen: React.FC = () => {
   const router = useRouter();
   const [fontsLoaded] = useFonts({
-    'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
-    'RobotoBold': require('../assets/fonts/Roboto-Bold.ttf'),
+    'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
+    'RobotoBold': require('../../assets/fonts/Roboto-Bold.ttf'),
   });
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const SplashScreen: React.FC = () => {
     <View style={styles.container}>
       <StatusBar style="dark" />
       <Image
-        source={require('../assets/images/icon.png')}
+        source={require('../../assets/images/icon.png')}
         style={styles.logo}
         resizeMode="contain"
       />
