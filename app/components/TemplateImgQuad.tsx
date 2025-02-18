@@ -179,7 +179,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
         placeholder="Tambahkan caption..."
         placeholderTextColor='maroon'
         multiline={true}
-        textAlignVertical="top"
+        textAlignVertical="center"
         textAlign="center"
         blurOnSubmit={true}
       />
@@ -391,6 +391,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
     marginTop: hp('0.5%'),
+    flexGrow: 1,
   },
   saveButton: {
     marginTop: hp('2%'),

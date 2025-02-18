@@ -206,7 +206,7 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
                       placeholder="Caption kiri..."
                       placeholderTextColor="#ffffff80"
                       multiline={true}
-                      textAlignVertical="top"
+                      textAlignVertical="center"
                       textAlign="center"
                       blurOnSubmit={true}
                     />
@@ -231,7 +231,7 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
                       placeholder="Caption kanan..."
                       placeholderTextColor="#ffffff80"
                       multiline={true}
-                      textAlignVertical="top"
+                      textAlignVertical="center"
                       textAlign="center"
                       blurOnSubmit={true}
                     />
@@ -350,6 +350,7 @@ const styles = StyleSheet.create({
     maxHeight: hp('20%'),
     textAlign: 'center',
     width: '100%', // Make sure caption spans full width of its container
+    flexGrow: 1, // Allow caption to grow vertically
   },
   imageWrapper: {
     width: '49%',

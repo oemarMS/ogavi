@@ -204,7 +204,7 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
                         placeholder="Caption gambar kiri..."
                         placeholderTextColor='maroon'
                         multiline={true}
-                        textAlignVertical="top"
+                        textAlignVertical="center"
                         textAlign="center"
                         blurOnSubmit={true}
                     />
@@ -229,7 +229,7 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
                         placeholder="Caption gambar kanan..."
                         placeholderTextColor='maroon'
                         multiline={true}
-                        textAlignVertical="top"
+                        textAlignVertical="center"
                         textAlign="center"
                         blurOnSubmit={true}
                     />
@@ -384,6 +384,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
     marginTop: hp('0.5%'),
+    flexGrow: 1,
   },
   saveButton: {
     marginTop: hp('2%'),
