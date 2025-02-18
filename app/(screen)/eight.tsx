@@ -1,6 +1,6 @@
-import TemplateVideo from '../../components/TemplateVideo';
+import TemplateVideo from '../components/TemplateVideo';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useColorScheme } from '@/app/components/useColorScheme';
 
 const Template8: React.FC = () => {
   const colorScheme = useColorScheme();

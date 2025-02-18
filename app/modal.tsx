@@ -1,7 +1,7 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, StyleSheet, Image, ScrollView, useColorScheme } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { Text, View } from '@/app/components/Themed';
 
 export default function AboutScreen() {
   const colorScheme = useColorScheme();

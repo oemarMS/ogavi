@@ -1,6 +1,6 @@
-import TemplateImgQuad from '../../components/TemplateImgQuad';
+import TemplateImgQuad from '../components/TemplateImgQuad';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useColorScheme } from '@/app/components/useColorScheme';
 
 const Template7: React.FC = () => {
   const colorScheme = useColorScheme();

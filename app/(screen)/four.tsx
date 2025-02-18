@@ -1,6 +1,6 @@
-import TemplateDual from '../../components/TemplateDual';
+import TemplateDual from '../components/TemplateDual';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useColorScheme } from '@/app/components/useColorScheme';
 
 const Template4: React.FC = () => {
   const colorScheme = useColorScheme();

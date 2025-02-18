@@ -1,6 +1,6 @@
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useColorScheme } from '@/app/components/useColorScheme';
 
 export default function MoreScreen() {
   const router = useRouter();
