@@ -91,7 +91,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
         : [10, Math.round((1/aspectRatio) * 10)];  // untuk ratio < 1 (misal 3:4)
   
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [width, height],  // 👈 Fix aspect ratio disini
         quality: 1,

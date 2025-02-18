@@ -89,7 +89,7 @@ const handleTextChange = (text: string) => {
     setIsLoading(true);
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        mediaTypes: ['videos'],
         allowsEditing: true,
         aspect: [3, 4], // Fix aspect ratio to 3:4
         quality: 1,
