@@ -12,6 +12,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  LayoutChangeEvent,
 } from "react-native";
 import { Video, ResizeMode } from 'expo-av';
 import Slider from '@react-native-community/slider';
@@ -45,6 +46,8 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
   const [tempFontSize, setTempFontSize] = useState(14);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState({});
+  const [captionHeight, setCaptionHeight] = useState(100);
+  const [captionWidth, setCaptionWidth] = useState(100);
 
   const videoRef = useRef(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -52,6 +55,13 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
   // Tambahkan state untuk menyimpan jumlah baris dan style teks
   const viewShotRef = useRef<ViewShot>(null);
   const [textLines, setTextLines] = useState<string[]>([]);
+
+  const handleCaptionLayout = (event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    const { width } = event.nativeEvent.layout;
+    setCaptionHeight(height);
+    setCaptionWidth(width);
+  };
 
   useEffect(() => {
     if (needsPermission) {
@@ -76,10 +86,13 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     }, 100);
   };
 
-  // Update handleTextChange untuk memproses teks menjadi array baris
+  // Update handleTextChange untuk better line management
 const handleTextChange = (text: string) => {
   setCaptionText(text);
-  setTextLines(text.split('\n')); // Pisahkan teks berdasarkan line break
+  // Split berdasarkan line break dan filter empty lines
+  const lines = text.split('\n').filter(line => line.trim() !== '');
+  setTextLines(lines);
+  
   setTimeout(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, 100);
@@ -91,7 +104,7 @@ const handleTextChange = (text: string) => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['videos'],
         allowsEditing: true,
-        aspect: [3, 4], // Fix aspect ratio to 3:4
+        aspect: [16, 9], // Fix aspect ratio to 4:3
         quality: 1,
       });
 
@@ -101,8 +114,8 @@ const handleTextChange = (text: string) => {
         const tempFileName = `temp_${Date.now()}.mp4`;
         const tempPath = `${tempDir}${tempFileName}`;
   
-        // Command to force aspect ratio to 3:4
-        const command = `-i "${result.assets[0].uri}" -vf "scale=720:960:force_original_aspect_ratio=decrease,pad=720:960:(ow-iw)/2:(oh-ih)/2" -c:v mpeg4 -c:a copy "${tempPath}"`;
+        // Command to force aspect ratio to 4:3
+        const command = `-i "${result.assets[0].uri}" -vf "scale=1920:1080:force_original_aspect_ratio=1" -c:v mpeg4 -c:a copy "${tempPath}"`;
   
         console.log('FFmpeg command:', command);
         const session = await FFmpegKit.execute(command);
@@ -151,8 +164,8 @@ const handleTextChange = (text: string) => {
       const tempVideoPath = `${tempDir}${tempVideoName}`;
       const outputPath = `${tempDir}${outputFileName}`;
 
-      // Step 1: Create video with red box (yang sudah berhasil)
-      const command1 = `-i "${selectedVideo.uri}" -vf "split[main][tmp];[tmp]scale=iw:100,geq=r=255:b=0:g=0:a=1[text];[main]pad=iw:ih+100:0:0:red[base];[base][text]overlay=0:H-h" -c:v mpeg4 -c:a copy "${tempVideoPath}"`;
+      // Step 1: Bikin video dengan area merah full width
+      const command1 = `-i "${selectedVideo.uri}" -vf "pad=iw:ih+${captionHeight * 3.5}:0:0[padded]" -c:v mpeg4 -c:a copy "${tempVideoPath}"`;
 
       console.log('FFmpeg command 1:', command1);
       const session1 = await FFmpegKit.execute(command1);
@@ -162,8 +175,8 @@ const handleTextChange = (text: string) => {
         throw new Error('Failed to create video with red box');
       }
 
-      // Step 2: Add text image overlay
-      const command2 = `-i "${tempVideoPath}" -i "${textImage}" -filter_complex "[1:v]scale=w=${wp('90%')}:h=100[txt];[0:v][txt]overlay=(W-w)/2:H-h" -c:v mpeg4 -c:a copy "${outputPath}"`;
+      // Step 2: Update command buat text overlay yang full width
+      const command2 = `-i "${tempVideoPath}" -i "${textImage}" -filter_complex "[0:v][1:v]overlay=(W-w)/2:H-${captionHeight * 3}" -c:v mpeg4 -c:a copy "${outputPath}"`;
 
       console.log('FFmpeg command 2:', command2);
       const session2 = await FFmpegKit.execute(command2);
@@ -224,24 +237,39 @@ const handleTextChange = (text: string) => {
             
             {/* Hidden ViewShot component for text capture */}
             <ViewShot
-              ref={viewShotRef}
-              options={{
-                format: "png",
-                quality: 1.0,
-                width: wp('90%'), // Sesuaikan dengan lebar video
-                height: 500 // Sesuai tinggi area merah
-              }}
-              style={styles.hiddenViewShot}
-            >
-              <View style={styles.textContainer}>
+  ref={viewShotRef}
+  options={{
+    format: "png",
+    quality: 1.0,
+    width: wp('100%'),
+    height: captionHeight
+  }}
+  style={[styles.hiddenViewShot, { 
+    height: captionHeight,
+    width: wp('100%')
+  }]}
+>
+  <View 
+    style={[styles.textContainer, { 
+      height: 'auto',
+      width: '100%'
+    }]}
+    onLayout={handleCaptionLayout}
+  >
     <Text 
       style={[
         styles.captionText, 
         { 
-          fontSize: fontSize * 2,
-          lineHeight: fontSize * 2.5
+          fontSize: fontSize,
+          // Hapus lineHeight biar font ga gepeng
+          width: '92%',
+          //flexWrap: 'wrap', // Nambahin ini biar text bisa shrink dengan proporsional
         }
       ]}
+      // Hapus adjustsFontSizeToFit karena ini yang bikin masalah
+      // Hapus minimumFontScale karena udah ga dipake
+      
+      numberOfLines={3} // Kasih maksimal 3 baris aja biar readable
     >
       {captionText}
     </Text>
@@ -272,7 +300,7 @@ const handleTextChange = (text: string) => {
                 placeholder="Tuliskan keterangan video di sini..."
                 placeholderTextColor="#ffffff80"
                 multiline={true}
-                textAlignVertical="top"
+                textAlignVertical="center"
                 textAlign="center"
                 blurOnSubmit={true}
                 onBlur={() => Keyboard.dismiss()}
@@ -332,26 +360,25 @@ const styles = StyleSheet.create({
       position: 'absolute',
       top: -9999,
       left: -9999,
-      backgroundColor: 'red', // Pastikan background merah
-      width: wp('90%'),
-      height: 100,
+      backgroundColor: 'red',
+      // width diset di inline style
     },
     textContainer: {
       width: '100%',
-      height: '100%',
       backgroundColor: 'red',
       justifyContent: 'center',
       alignItems: 'center',
-      padding: wp('2%'),
+      minHeight: 60,
+      overflow: 'visible' // Tambah ini biar text ga kepotong
     },
     captionText: {
       color: 'white',
       fontFamily: 'RobotoBold',
       textAlign: 'center',
-      flexWrap: 'wrap',
       width: '100%',
-      includeFontPadding: false,
-      textAlignVertical: 'center',
+      //includeFontPadding: false,
+      paddingHorizontal: hp('2%'), // Kurangin padding biar space lebih gede
+      
     },
     videoContainer: {
         width: wp('90%'),
@@ -359,6 +386,7 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         padding: wp('1%'),
         backgroundColor: '#fff',
+        flexDirection: 'column',
     },
     placeholder: {
         width: wp('88%'),
@@ -378,15 +406,18 @@ const styles = StyleSheet.create({
         color: '#666',
     },
     caption: {
-        fontFamily: 'RobotoBold',
-        marginTop: hp('0.5%'),
-        padding: wp('2%'),
-        backgroundColor: "red",
-        color: "white",
-        fontSize: RFValue(12),
-        fontStyle: 'normal',
-        maxHeight: hp('20%'),
-        textAlign: 'center',
+      fontFamily: 'RobotoBold',
+      marginTop: hp('0.5%'),
+      padding: wp('2%'),
+      backgroundColor: "red",
+      color: "white",
+      fontSize: RFValue(12),
+      fontStyle: 'normal',
+      //minHeight: hp('10%'), // Ganti maxHeight jadi minHeight
+      textAlign: 'center',
+      textAlignVertical: 'center', // Tambahan untuk alignment vertikal
+      width: wp('88%'),
+    alignSelf: 'center',
     },
     button: {
         marginTop: hp('2%'),
@@ -446,6 +477,7 @@ const styles = StyleSheet.create({
     video: {
         width: wp('88%'),
         alignSelf: 'center',
+        
     },
 });
 
