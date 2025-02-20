@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack } from "expo-router";
 
 export default function Layout() {
   return (
@@ -6,31 +6,31 @@ export default function Layout() {
       <Stack.Screen
         name="four"
         options={{
-          title: 'Template 4 - Dual'
+          title: "Template 4 - Dual",
         }}
       />
       <Stack.Screen
         name="five"
         options={{
-          title: 'Template 5 - Dual Caption'
+          title: "Template 5 - Dual Caption",
         }}
       />
       <Stack.Screen
         name="six"
         options={{
-          title: 'Template 6 - Dual Caption 2'
+          title: "Template 6 - Dual Caption 2",
         }}
       />
       <Stack.Screen
         name="seven"
         options={{
-          title: 'Template 7 - Quad Caption'
+          title: "Template 7 - Quad Caption",
         }}
       />
       <Stack.Screen
         name="eight"
         options={{
-          title: 'Template 8 - Template Video'
+          title: "Template 8 - Template Video",
         }}
       />
     </Stack>

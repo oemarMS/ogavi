@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  Image, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -14,13 +14,16 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import Slider from '@react-native-community/slider';
+import Slider from "@react-native-community/slider";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import ViewShot from "react-native-view-shot";
-import { RFValue } from 'react-native-responsive-fontsize';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import * as Font from 'expo-font';
+import { RFValue } from "react-native-responsive-fontsize";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import * as Font from "expo-font";
 
 interface TemplateImgDualProps {
   aspectRatio: number;
@@ -31,17 +34,25 @@ interface TemplateImgDualProps {
 const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
   aspectRatio,
   title,
-  needsPermission = false
+  needsPermission = false,
 }) => {
-  const [leftImage, setLeftImage] = useState<{ uri: string, width: number, height: number } | null>(null);
-  const [rightImage, setRightImage] = useState<{ uri: string, width: number, height: number } | null>(null);
-  const [captionText, setCaptionText] = useState('');
-  const [leftCaption, setLeftCaption] = useState('');
-  const [rightCaption, setRightCaption] = useState('');
+  const [leftImage, setLeftImage] = useState<{
+    uri: string;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [rightImage, setRightImage] = useState<{
+    uri: string;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [captionText, setCaptionText] = useState("");
+  const [leftCaption, setLeftCaption] = useState("");
+  const [rightCaption, setRightCaption] = useState("");
   const [mainFontSize, setMainFontSize] = useState(14);
-const [imageFontSize, setImageFontSize] = useState(14);
-const [tempMainFontSize, setTempMainFontSize] = useState(14);
-const [tempImageFontSize, setTempImageFontSize] = useState(14);
+  const [imageFontSize, setImageFontSize] = useState(14);
+  const [tempMainFontSize, setTempMainFontSize] = useState(14);
+  const [tempImageFontSize, setTempImageFontSize] = useState(14);
   const [isLoading, setIsLoading] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -52,8 +63,11 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
     if (needsPermission) {
       const requestPermission = async () => {
         const { status } = await MediaLibrary.requestPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Izin Ditolak', 'Maaf, kami butuh izin untuk bisa menyimpan gambar ke galeri!');
+        if (status !== "granted") {
+          Alert.alert(
+            "Izin Ditolak",
+            "Maaf, kami butuh izin untuk bisa menyimpan gambar ke galeri!"
+          );
         }
       };
       requestPermission();
@@ -65,7 +79,7 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
       inputRef.current?.measureInWindow((x, y, width, height) => {
         scrollViewRef.current?.scrollTo({
           y: y,
-          animated: true
+          animated: true,
         });
       });
     }, 100);
@@ -75,22 +89,23 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
     setCaptionText(text);
   };
 
-  const pickImage = async (side: 'left' | 'right') => {
+  const pickImage = async (side: "left" | "right") => {
     setIsLoading(true);
     try {
-      const [width, height] = aspectRatio > 1 
-        ? [Math.round(aspectRatio * 10), 10]
-        : [10, Math.round((1/aspectRatio) * 10)];
+      const [width, height] =
+        aspectRatio > 1
+          ? [Math.round(aspectRatio * 10), 10]
+          : [10, Math.round((1 / aspectRatio) * 10)];
 
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [width, height],
         quality: 1,
       });
 
       if (!result.canceled && result.assets.length > 0) {
-        if (side === 'left') {
+        if (side === "left") {
           setLeftImage(result.assets[0]);
         } else {
           setRightImage(result.assets[0]);
@@ -112,13 +127,19 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
 
       if (needsPermission) {
         const { status } = await MediaLibrary.getPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Izin Ditolak', 'Maaf, aplikasi butuh izin untuk bisa menyimpan gambar ke galeri!');
+        if (status !== "granted") {
+          Alert.alert(
+            "Izin Ditolak",
+            "Maaf, aplikasi butuh izin untuk bisa menyimpan gambar ke galeri!"
+          );
           return;
         }
       }
 
-      if (viewShotRef.current && typeof viewShotRef.current.capture === "function") {
+      if (
+        viewShotRef.current &&
+        typeof viewShotRef.current.capture === "function"
+      ) {
         setIsLoading(true);
         const uri = await viewShotRef.current.capture();
         await MediaLibrary.saveToLibraryAsync(uri);
@@ -133,8 +154,8 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
   };
 
   const [fontsLoaded] = Font.useFonts({
-    'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
-    'RobotoBold': require('../../assets/fonts/Roboto-Bold.ttf'),
+    Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
+    RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
   });
 
   if (!fontsLoaded) {
@@ -147,7 +168,7 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
   }
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       style={styles.container}
@@ -157,7 +178,7 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
           <ActivityIndicator size="large" color="#6A1B9A" />
         </View>
       )}
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -169,69 +190,73 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
               <View style={styles.dualImageContainer}>
                 {/* Main Caption at the top */}
                 <TextInput
-                    ref={inputRef}
-                    style={[styles.caption, { fontSize: mainFontSize }]}
-                    value={captionText}
-                    onChangeText={handleTextChange}
-                    placeholder="Tuliskan keterangan utama di sini..."
-                    placeholderTextColor='maroon'
-                    multiline={true}
-                    textAlignVertical="top"
-                    textAlign="center"
-                    blurOnSubmit={false}
-                    returnKeyType="default"
-                    onBlur={() => Keyboard.dismiss()}
-                    onFocus={handleFocus}
+                  ref={inputRef}
+                  style={[styles.caption, { fontSize: mainFontSize }]}
+                  value={captionText}
+                  onChangeText={handleTextChange}
+                  placeholder="Tuliskan keterangan utama di sini..."
+                  placeholderTextColor="maroon"
+                  multiline={true}
+                  textAlignVertical="top"
+                  textAlign="center"
+                  blurOnSubmit={false}
+                  returnKeyType="default"
+                  onBlur={() => Keyboard.dismiss()}
+                  onFocus={handleFocus}
                 />
 
                 <View style={styles.imagesRow}>
                   {/* Left Image with Caption */}
                   <View style={styles.imageWrapper}>
                     {leftImage ? (
-                      <Image 
-                        source={{ uri: leftImage.uri }} 
-                        style={[styles.placeholder, { aspectRatio }]} 
+                      <Image
+                        source={{ uri: leftImage.uri }}
+                        style={[styles.placeholder, { aspectRatio }]}
                       />
                     ) : (
                       <View style={[styles.placeholder, { aspectRatio }]}>
-                        <Text style={styles.placeholderText}>Pilih Gambar Kiri</Text>
+                        <Text style={styles.placeholderText}>
+                          Pilih Gambar Kiri
+                        </Text>
                       </View>
                     )}
                     <TextInput
-                        style={[styles.imageCaption, { fontSize: imageFontSize }]}
-                        value={leftCaption}
-                        onChangeText={setLeftCaption}
-                        placeholder="Caption gambar kiri..."
-                        placeholderTextColor='maroon'
-                        multiline={true}
-                        textAlignVertical="center"
-                        textAlign="center"
-                        blurOnSubmit={true}
+                      style={[styles.imageCaption, { fontSize: imageFontSize }]}
+                      value={leftCaption}
+                      onChangeText={setLeftCaption}
+                      placeholder="Caption gambar kiri..."
+                      placeholderTextColor="maroon"
+                      multiline={true}
+                      textAlignVertical="center"
+                      textAlign="center"
+                      blurOnSubmit={true}
                     />
                   </View>
-                  
+
                   {/* Right Image with Caption */}
                   <View style={styles.imageWrapper}>
                     {rightImage ? (
-                      <Image 
-                        source={{ uri: rightImage.uri }} 
-                        style={[styles.placeholder, { aspectRatio }]} 
+                      <Image
+                        source={{ uri: rightImage.uri }}
+                        style={[styles.placeholder, { aspectRatio }]}
                       />
                     ) : (
                       <View style={[styles.placeholder, { aspectRatio }]}>
-                        <Text style={styles.placeholderText}>Pilih Gambar Kanan</Text>
+                        <Text style={styles.placeholderText}>
+                          Pilih Gambar Kanan
+                        </Text>
                       </View>
                     )}
                     <TextInput
-                        style={[styles.imageCaption, { fontSize: imageFontSize }]}
-                        value={rightCaption}
-                        onChangeText={setRightCaption}
-                        placeholder="Caption gambar kanan..."
-                        placeholderTextColor='maroon'
-                        multiline={true}
-                        textAlignVertical="center"
-                        textAlign="center"
-                        blurOnSubmit={true}
+                      style={[styles.imageCaption, { fontSize: imageFontSize }]}
+                      value={rightCaption}
+                      onChangeText={setRightCaption}
+                      placeholder="Caption gambar kanan..."
+                      placeholderTextColor="maroon"
+                      multiline={true}
+                      textAlignVertical="center"
+                      textAlign="center"
+                      blurOnSubmit={true}
                     />
                   </View>
                 </View>
@@ -239,11 +264,17 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
             </ViewShot>
 
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={() => pickImage('left')}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => pickImage("left")}
+              >
                 <Text style={styles.buttonText}>PILIH GAMBAR KIRI</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.button} onPress={() => pickImage('right')}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => pickImage("right")}
+              >
                 <Text style={styles.buttonText}>PILIH GAMBAR KANAN</Text>
               </TouchableOpacity>
             </View>
@@ -253,32 +284,36 @@ const [tempImageFontSize, setTempImageFontSize] = useState(14);
             </TouchableOpacity>
 
             <View style={styles.fontSizeControl}>
-    <View style={styles.sliderContainer}>
-        <Text style={styles.fontSizeText}>Ukuran Font Caption Utama: {tempMainFontSize}</Text>
-        <Slider
-            style={styles.slider}
-            minimumValue={10}
-            maximumValue={30}
-            step={1}
-            value={mainFontSize}
-            onValueChange={(value) => setTempMainFontSize(value)}
-            onSlidingComplete={(value) => setMainFontSize(value)}
-        />
-    </View>
-    
-    <View style={styles.sliderContainer}>
-        <Text style={styles.fontSizeText}>Ukuran Font Caption Gambar: {tempImageFontSize}</Text>
-        <Slider
-            style={styles.slider}
-            minimumValue={10}
-            maximumValue={30}
-            step={1}
-            value={imageFontSize}
-            onValueChange={(value) => setTempImageFontSize(value)}
-            onSlidingComplete={(value) => setImageFontSize(value)}
-        />
-    </View>
-</View>
+              <View style={styles.sliderContainer}>
+                <Text style={styles.fontSizeText}>
+                  Ukuran Font Caption Utama: {tempMainFontSize}
+                </Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={10}
+                  maximumValue={30}
+                  step={1}
+                  value={mainFontSize}
+                  onValueChange={(value) => setTempMainFontSize(value)}
+                  onSlidingComplete={(value) => setMainFontSize(value)}
+                />
+              </View>
+
+              <View style={styles.sliderContainer}>
+                <Text style={styles.fontSizeText}>
+                  Ukuran Font Caption Gambar: {tempImageFontSize}
+                </Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={10}
+                  maximumValue={30}
+                  step={1}
+                  value={imageFontSize}
+                  onValueChange={(value) => setTempImageFontSize(value)}
+                  onSlidingComplete={(value) => setImageFontSize(value)}
+                />
+              </View>
+            </View>
           </View>
         </TouchableWithoutFeedback>
       </ScrollView>
@@ -293,150 +328,150 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   inner: {
     flex: 1,
     alignItems: "center",
-    paddingTop: hp('2%'),
-    paddingBottom: hp('2%'),
+    paddingTop: hp("2%"),
+    paddingBottom: hp("2%"),
   },
   header: {
-    fontFamily: 'RobotoBold',
+    fontFamily: "RobotoBold",
     fontSize: RFValue(24),
     color: "#6A1B9A",
-    marginBottom: hp('2%'),
+    marginBottom: hp("2%"),
   },
   dualImageContainer: {
-    width: wp('95%'),
+    width: wp("95%"),
     borderWidth: 1,
-    borderColor: '#000',
-    padding: wp('1%'),
-    backgroundColor: '#2e3c45',
-    flexDirection: 'column',
-    justifyContent: 'center', // Added to center content vertically
-    alignItems: 'center', // Added to center content horizontally
-    paddingTop: hp('3%'),
-    paddingBottom: hp('3%'),
+    borderColor: "#000",
+    padding: wp("1%"),
+    backgroundColor: "#2e3c45",
+    flexDirection: "column",
+    justifyContent: "center", // Added to center content vertically
+    alignItems: "center", // Added to center content horizontally
+    paddingTop: hp("3%"),
+    paddingBottom: hp("3%"),
   },
   imagesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center', // Added to center items vertically
-    width: '100%',
-    marginTop: hp('1%'),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center", // Added to center items vertically
+    width: "100%",
+    marginTop: hp("1%"),
   },
   imageWrapper: {
-    width: '49%',
-    alignItems: 'center', // Added to center image and caption
+    width: "49%",
+    alignItems: "center", // Added to center image and caption
   },
   placeholder: {
-    width: '100%',
+    width: "100%",
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: wp('90%'),
-    marginTop: hp('2%'),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: wp("90%"),
+    marginTop: hp("2%"),
   },
   button: {
-    padding: wp('3%'),
+    padding: wp("3%"),
     borderRadius: 100,
     borderWidth: 1,
     borderColor: "#6A1B9A",
     alignItems: "center",
-    width: wp('43%'),
+    width: wp("43%"),
   },
   buttonText: {
-    fontFamily: 'RobotoBold',
+    fontFamily: "RobotoBold",
     color: "#6A1B9A",
     fontSize: RFValue(12),
   },
   placeholderText: {
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
     fontSize: RFValue(12),
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   caption: {
-    fontFamily: 'RobotoBold',
-    padding: wp('2%'),
+    fontFamily: "RobotoBold",
+    padding: wp("2%"),
     backgroundColor: "white",
     color: "maroon",
     fontSize: RFValue(12),
-    fontStyle: 'normal',
-    textAlign: 'center',
-    width: '100%',
-    alignSelf: 'center', // Added to center caption
-    marginBottom: hp('2%'),
+    fontStyle: "normal",
+    textAlign: "center",
+    width: "100%",
+    alignSelf: "center", // Added to center caption
+    marginBottom: hp("2%"),
   },
   imageCaption: {
-    fontFamily: 'RobotoBold',
-    padding: wp('2%'),
-    backgroundColor: 'white',
-    color: 'maroon',
+    fontFamily: "RobotoBold",
+    padding: wp("2%"),
+    backgroundColor: "white",
+    color: "maroon",
     fontSize: RFValue(12),
-    fontStyle: 'normal',
-    textAlign: 'center',
-    width: '100%',
-    marginTop: hp('0.5%'),
+    fontStyle: "normal",
+    textAlign: "center",
+    width: "100%",
+    marginTop: hp("0.5%"),
     flexGrow: 1,
   },
   saveButton: {
-    marginTop: hp('2%'),
+    marginTop: hp("2%"),
     backgroundColor: "#6A1B9A",
-    padding: wp('3%'),
+    padding: wp("3%"),
     borderRadius: 100,
     alignItems: "center",
-    width: wp('50%'),
+    width: wp("50%"),
   },
   saveButtonText: {
-    fontFamily: 'RobotoBold',
+    fontFamily: "RobotoBold",
     color: "white",
     fontSize: RFValue(16),
   },
   fontSizeControl: {
-    marginTop: hp('2%'),
-    marginBottom: hp('2%'),
-    width: wp('80%'),
-    alignItems: 'center',
-},
-sliderContainer: {
-    width: '100%',
-    marginBottom: hp('2%'),
-    alignItems: 'center',
-},
-fontSizeText: {
-    fontFamily: 'Roboto',
+    marginTop: hp("2%"),
+    marginBottom: hp("2%"),
+    width: wp("80%"),
+    alignItems: "center",
+  },
+  sliderContainer: {
+    width: "100%",
+    marginBottom: hp("2%"),
+    alignItems: "center",
+  },
+  fontSizeText: {
+    fontFamily: "Roboto",
     fontSize: RFValue(14),
-    marginBottom: hp('1%'),
-    textAlign: 'center',
-},
-slider: {
-    width: '100%',
+    marginBottom: hp("1%"),
+    textAlign: "center",
+  },
+  slider: {
+    width: "100%",
     height: 40,
-},
+  },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 999,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   loadingText: {
-    fontWeight: '500',
+    fontWeight: "500",
     fontSize: RFValue(16),
-    color: '#6A1B9A',
+    color: "#6A1B9A",
   },
 });
 

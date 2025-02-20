@@ -1,2 +1,2 @@
-import SplashScreen from './components/splashscreen';
+import SplashScreen from "./components/splashscreen";
 export default SplashScreen;

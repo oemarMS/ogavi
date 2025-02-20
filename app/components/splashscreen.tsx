@@ -1,21 +1,21 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { useFonts } from 'expo-font';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import React, { useEffect } from "react";
+import { View, Text, Image, StyleSheet } from "react-native";
+import { useFonts } from "expo-font";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 const SplashScreen: React.FC = () => {
   const router = useRouter();
   const [fontsLoaded] = useFonts({
-    'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
-    'RobotoBold': require('../../assets/fonts/Roboto-Bold.ttf'),
+    Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
+    RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
   });
 
   useEffect(() => {
     const navigateToHome = async () => {
       if (fontsLoaded) {
         setTimeout(() => {
-          router.replace('/(tabs)');
+          router.replace("/(tabs)");
         }, 2000);
       }
     };
@@ -27,7 +27,7 @@ const SplashScreen: React.FC = () => {
     <View style={styles.container}>
       <StatusBar style="dark" />
       <Image
-        source={require('../../assets/images/icon.png')}
+        source={require("../../assets/images/icon.png")}
         style={styles.logo}
         resizeMode="contain"
       />
@@ -38,9 +38,9 @@ const SplashScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(102, 196, 250, 0.9)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(102, 196, 250, 0.9)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   logo: {
     width: 150,
@@ -48,9 +48,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontFamily: 'RobotoBold',
+    fontFamily: "RobotoBold",
     marginTop: 20,
-    color: '#6A1B9A',
+    color: "#6A1B9A",
   },
 });
 

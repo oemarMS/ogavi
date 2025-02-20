@@ -1,16 +1,16 @@
-import TemplateDual from '../components/TemplateDual';
-import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from '@/app/components/useColorScheme';
+import TemplateDual from "../components/TemplateDual";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "@/app/components/useColorScheme";
 
 const Template4: React.FC = () => {
   const colorScheme = useColorScheme();
-  
+
   return (
     <>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <TemplateDual 
-        aspectRatio={3/4}
-        title="Template Dual" 
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+      <TemplateDual
+        aspectRatio={3 / 4}
+        title="Template Dual"
         needsPermission={true}
       />
     </>

@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  Image, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -14,13 +14,16 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import Slider from '@react-native-community/slider';
+import Slider from "@react-native-community/slider";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import ViewShot from "react-native-view-shot";
-import { RFValue } from 'react-native-responsive-fontsize';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import * as Font from 'expo-font';
+import { RFValue } from "react-native-responsive-fontsize";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import * as Font from "expo-font";
 
 interface TemplateImgQuadProps {
   aspectRatio: number;
@@ -31,17 +34,33 @@ interface TemplateImgQuadProps {
 const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
   aspectRatio,
   title,
-  needsPermission = false
+  needsPermission = false,
 }) => {
-  const [topLeftImage, setTopLeftImage] = useState<{ uri: string, width: number, height: number } | null>(null);
-  const [topRightImage, setTopRightImage] = useState<{ uri: string, width: number, height: number } | null>(null);
-  const [bottomLeftImage, setBottomLeftImage] = useState<{ uri: string, width: number, height: number } | null>(null);
-  const [bottomRightImage, setBottomRightImage] = useState<{ uri: string, width: number, height: number } | null>(null);
-  const [captionText, setCaptionText] = useState('');
-  const [topLeftCaption, setTopLeftCaption] = useState('');
-  const [topRightCaption, setTopRightCaption] = useState('');
-  const [bottomLeftCaption, setBottomLeftCaption] = useState('');
-  const [bottomRightCaption, setBottomRightCaption] = useState('');
+  const [topLeftImage, setTopLeftImage] = useState<{
+    uri: string;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [topRightImage, setTopRightImage] = useState<{
+    uri: string;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [bottomLeftImage, setBottomLeftImage] = useState<{
+    uri: string;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [bottomRightImage, setBottomRightImage] = useState<{
+    uri: string;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [captionText, setCaptionText] = useState("");
+  const [topLeftCaption, setTopLeftCaption] = useState("");
+  const [topRightCaption, setTopRightCaption] = useState("");
+  const [bottomLeftCaption, setBottomLeftCaption] = useState("");
+  const [bottomRightCaption, setBottomRightCaption] = useState("");
   const [mainFontSize, setMainFontSize] = useState(14);
   const [imageFontSize, setImageFontSize] = useState(14);
   const [tempMainFontSize, setTempMainFontSize] = useState(14);
@@ -56,8 +75,11 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
     if (needsPermission) {
       const requestPermission = async () => {
         const { status } = await MediaLibrary.requestPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Izin Ditolak', 'Maaf, kami butuh izin untuk bisa menyimpan gambar ke galeri!');
+        if (status !== "granted") {
+          Alert.alert(
+            "Izin Ditolak",
+            "Maaf, kami butuh izin untuk bisa menyimpan gambar ke galeri!"
+          );
         }
       };
       requestPermission();
@@ -69,38 +91,41 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
       inputRef.current?.measureInWindow((x, y, width, height) => {
         scrollViewRef.current?.scrollTo({
           y: y,
-          animated: true
+          animated: true,
         });
       });
     }, 100);
   };
 
-  const pickImage = async (position: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight') => {
+  const pickImage = async (
+    position: "topLeft" | "topRight" | "bottomLeft" | "bottomRight"
+  ) => {
     setIsLoading(true);
     try {
-      const [width, height] = aspectRatio > 1 
-        ? [Math.round(aspectRatio * 10), 10]
-        : [10, Math.round((1/aspectRatio) * 10)];
+      const [width, height] =
+        aspectRatio > 1
+          ? [Math.round(aspectRatio * 10), 10]
+          : [10, Math.round((1 / aspectRatio) * 10)];
 
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [width, height],
         quality: 1,
       });
 
       if (!result.canceled && result.assets.length > 0) {
-        switch(position) {
-          case 'topLeft':
+        switch (position) {
+          case "topLeft":
             setTopLeftImage(result.assets[0]);
             break;
-          case 'topRight':
+          case "topRight":
             setTopRightImage(result.assets[0]);
             break;
-          case 'bottomLeft':
+          case "bottomLeft":
             setBottomLeftImage(result.assets[0]);
             break;
-          case 'bottomRight':
+          case "bottomRight":
             setBottomRightImage(result.assets[0]);
             break;
         }
@@ -114,20 +139,31 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
 
   const saveToGallery = async () => {
     try {
-      if (!topLeftImage || !topRightImage || !bottomLeftImage || !bottomRightImage) {
+      if (
+        !topLeftImage ||
+        !topRightImage ||
+        !bottomLeftImage ||
+        !bottomRightImage
+      ) {
         Alert.alert("Pilih semua foto dulu sebelum disimpan 😅");
         return;
       }
 
       if (needsPermission) {
         const { status } = await MediaLibrary.getPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Izin Ditolak', 'Maaf, aplikasi butuh izin untuk bisa menyimpan gambar ke galeri!');
+        if (status !== "granted") {
+          Alert.alert(
+            "Izin Ditolak",
+            "Maaf, aplikasi butuh izin untuk bisa menyimpan gambar ke galeri!"
+          );
           return;
         }
       }
 
-      if (viewShotRef.current && typeof viewShotRef.current.capture === "function") {
+      if (
+        viewShotRef.current &&
+        typeof viewShotRef.current.capture === "function"
+      ) {
         setIsLoading(true);
         const uri = await viewShotRef.current.capture();
         await MediaLibrary.saveToLibraryAsync(uri);
@@ -142,8 +178,8 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
   };
 
   const [fontsLoaded] = Font.useFonts({
-    'Roboto': require('../../assets/fonts/Roboto-Regular.ttf'),
-    'RobotoBold': require('../../assets/fonts/Roboto-Bold.ttf'),
+    Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
+    RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
   });
 
   if (!fontsLoaded) {
@@ -156,16 +192,16 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
   }
 
   const renderImageSection = (
-    image: any, 
-    caption: string, 
-    setCaption: (text: string) => void, 
+    image: any,
+    caption: string,
+    setCaption: (text: string) => void,
     placeholder: string
   ) => (
     <View style={styles.imageWrapper}>
       {image ? (
-        <Image 
-          source={{ uri: image.uri }} 
-          style={[styles.placeholder, { aspectRatio }]} 
+        <Image
+          source={{ uri: image.uri }}
+          style={[styles.placeholder, { aspectRatio }]}
         />
       ) : (
         <View style={[styles.placeholder, { aspectRatio }]}>
@@ -177,7 +213,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
         value={caption}
         onChangeText={setCaption}
         placeholder="Tambahkan caption..."
-        placeholderTextColor='maroon'
+        placeholderTextColor="maroon"
         multiline={true}
         textAlignVertical="center"
         textAlign="center"
@@ -187,7 +223,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
   );
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       style={styles.container}
@@ -197,7 +233,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
           <ActivityIndicator size="large" color="#6A1B9A" />
         </View>
       )}
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -213,7 +249,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
                   value={captionText}
                   onChangeText={setCaptionText}
                   placeholder="Tuliskan keterangan utama di sini..."
-                  placeholderTextColor='maroon'
+                  placeholderTextColor="maroon"
                   multiline={true}
                   textAlignVertical="top"
                   textAlign="center"
@@ -223,12 +259,32 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
 
                 <View style={styles.imagesGrid}>
                   <View style={styles.imageRow}>
-                    {renderImageSection(topLeftImage, topLeftCaption, setTopLeftCaption, "Pilih Gambar Kiri Atas")}
-                    {renderImageSection(topRightImage, topRightCaption, setTopRightCaption, "Pilih Gambar Kanan Atas")}
+                    {renderImageSection(
+                      topLeftImage,
+                      topLeftCaption,
+                      setTopLeftCaption,
+                      "Pilih Gambar Kiri Atas"
+                    )}
+                    {renderImageSection(
+                      topRightImage,
+                      topRightCaption,
+                      setTopRightCaption,
+                      "Pilih Gambar Kanan Atas"
+                    )}
                   </View>
                   <View style={styles.imageRow}>
-                    {renderImageSection(bottomLeftImage, bottomLeftCaption, setBottomLeftCaption, "Pilih Gambar Kiri Bawah")}
-                    {renderImageSection(bottomRightImage, bottomRightCaption, setBottomRightCaption, "Pilih Gambar Kanan Bawah")}
+                    {renderImageSection(
+                      bottomLeftImage,
+                      bottomLeftCaption,
+                      setBottomLeftCaption,
+                      "Pilih Gambar Kiri Bawah"
+                    )}
+                    {renderImageSection(
+                      bottomRightImage,
+                      bottomRightCaption,
+                      setBottomRightCaption,
+                      "Pilih Gambar Kanan Bawah"
+                    )}
                   </View>
                 </View>
               </View>
@@ -236,18 +292,30 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
 
             <View style={styles.buttonGrid}>
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.button} onPress={() => pickImage('topLeft')}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => pickImage("topLeft")}
+                >
                   <Text style={styles.buttonText}>PILIH KIRI ATAS</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => pickImage('topRight')}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => pickImage("topRight")}
+                >
                   <Text style={styles.buttonText}>PILIH KANAN ATAS</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.button} onPress={() => pickImage('bottomLeft')}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => pickImage("bottomLeft")}
+                >
                   <Text style={styles.buttonText}>PILIH KIRI BAWAH</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => pickImage('bottomRight')}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => pickImage("bottomRight")}
+                >
                   <Text style={styles.buttonText}>PILIH KANAN BAWAH</Text>
                 </TouchableOpacity>
               </View>
@@ -259,7 +327,9 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
 
             <View style={styles.fontSizeControl}>
               <View style={styles.sliderContainer}>
-                <Text style={styles.fontSizeText}>Ukuran Font Caption Utama: {tempMainFontSize}</Text>
+                <Text style={styles.fontSizeText}>
+                  Ukuran Font Caption Utama: {tempMainFontSize}
+                </Text>
                 <Slider
                   style={styles.slider}
                   minimumValue={10}
@@ -270,9 +340,11 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
                   onSlidingComplete={setMainFontSize}
                 />
               </View>
-              
+
               <View style={styles.sliderContainer}>
-                <Text style={styles.fontSizeText}>Ukuran Font Caption Gambar: {tempImageFontSize}</Text>
+                <Text style={styles.fontSizeText}>
+                  Ukuran Font Caption Gambar: {tempImageFontSize}
+                </Text>
                 <Slider
                   style={styles.slider}
                   minimumValue={10}
@@ -298,152 +370,152 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   inner: {
     flex: 1,
     alignItems: "center",
-    paddingTop: hp('2%'),
-    paddingBottom: hp('2%'),
+    paddingTop: hp("2%"),
+    paddingBottom: hp("2%"),
   },
   header: {
-    fontFamily: 'RobotoBold',
+    fontFamily: "RobotoBold",
     fontSize: RFValue(24),
     color: "#6A1B9A",
-    marginBottom: hp('2%'),
+    marginBottom: hp("2%"),
   },
   quadImageContainer: {
-    width: wp('95%'),
+    width: wp("95%"),
     borderWidth: 1,
-    borderColor: '#000',
-    paddingStart: wp('1%'),
-    paddingEnd: wp('1%'),
-    paddingTop: hp('0.5%'),
+    borderColor: "#000",
+    paddingStart: wp("1%"),
+    paddingEnd: wp("1%"),
+    paddingTop: hp("0.5%"),
     //paddingBottom: hp('1%'),
-    backgroundColor: '#2e3c45',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#2e3c45",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
   },
   imagesGrid: {
-    width: '100%',
-    marginTop: hp('1%'),
+    width: "100%",
+    marginTop: hp("1%"),
   },
   imageRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: hp('1%'),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: hp("1%"),
   },
   imageWrapper: {
-    width: '49%',
-    alignItems: 'center',
+    width: "49%",
+    alignItems: "center",
   },
   placeholder: {
-    width: '100%',
+    width: "100%",
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
   },
   buttonGrid: {
-    width: wp('90%'),
-    marginTop: hp('2%'),
+    width: wp("90%"),
+    marginTop: hp("2%"),
   },
   buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: hp('1%'),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: hp("1%"),
   },
   button: {
-    padding: wp('3%'),
+    padding: wp("3%"),
     borderRadius: 100,
     borderWidth: 1,
     borderColor: "#6A1B9A",
     alignItems: "center",
-    width: wp('43%'),
+    width: wp("43%"),
   },
   buttonText: {
-    fontFamily: 'RobotoBold',
+    fontFamily: "RobotoBold",
     color: "#6A1B9A",
     fontSize: RFValue(12),
   },
   placeholderText: {
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
     fontSize: RFValue(12),
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   caption: {
-    fontFamily: 'RobotoBold',
-    padding: wp('2%'),
+    fontFamily: "RobotoBold",
+    padding: wp("2%"),
     backgroundColor: "white",
     color: "maroon",
     fontSize: RFValue(12),
-    textAlign: 'center',
-    width: '100%',
-    marginBottom: hp('2%'),
+    textAlign: "center",
+    width: "100%",
+    marginBottom: hp("2%"),
   },
   imageCaption: {
-    fontFamily: 'RobotoBold',
-    padding: wp('2%'),
-    backgroundColor: 'white',
-    color: 'maroon',
+    fontFamily: "RobotoBold",
+    padding: wp("2%"),
+    backgroundColor: "white",
+    color: "maroon",
     fontSize: RFValue(12),
-    textAlign: 'center',
-    width: '100%',
-    marginTop: hp('0.5%'),
+    textAlign: "center",
+    width: "100%",
+    marginTop: hp("0.5%"),
     flexGrow: 1,
   },
   saveButton: {
-    marginTop: hp('2%'),
+    marginTop: hp("2%"),
     backgroundColor: "#6A1B9A",
-    padding: wp('3%'),
+    padding: wp("3%"),
     borderRadius: 100,
     alignItems: "center",
-    width: wp('50%'),
+    width: wp("50%"),
   },
   saveButtonText: {
-    fontFamily: 'RobotoBold',
+    fontFamily: "RobotoBold",
     color: "white",
     fontSize: RFValue(16),
   },
   fontSizeControl: {
-    marginTop: hp('2%'),
-    marginBottom: hp('2%'),
-    width: wp('80%'),
-    alignItems: 'center',
+    marginTop: hp("2%"),
+    marginBottom: hp("2%"),
+    width: wp("80%"),
+    alignItems: "center",
   },
   sliderContainer: {
-    width: '100%',
-    marginBottom: hp('2%'),
-    alignItems: 'center',
+    width: "100%",
+    marginBottom: hp("2%"),
+    alignItems: "center",
   },
   fontSizeText: {
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
     fontSize: RFValue(14),
-    marginBottom: hp('1%'),
-    textAlign: 'center',
+    marginBottom: hp("1%"),
+    textAlign: "center",
   },
   slider: {
-    width: '100%',
+    width: "100%",
     height: 40,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 999,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   loadingText: {
-    fontWeight: '500',
+    fontWeight: "500",
     fontSize: RFValue(16),
-    color: '#6A1B9A',
+    color: "#6A1B9A",
   },
 });
 
