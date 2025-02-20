@@ -9,7 +9,7 @@ const Template8: React.FC = () => {
     <>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <TemplateVideo 
-        aspectRatio={16/9} // atau rasio yang Anda inginkan
+        aspectRatio={1/1} // atau rasio yang Anda inginkan
         title="Template Video" 
         needsPermission={true}
     />

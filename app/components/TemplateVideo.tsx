@@ -104,18 +104,18 @@ const handleTextChange = (text: string) => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['videos'],
         allowsEditing: true,
-        aspect: [16, 9], // Fix aspect ratio to 4:3
+        aspect: [1, 1], // Fix aspect ratio to 9:16
         quality: 1,
       });
 
       if (!result.canceled && result.assets.length > 0) {
         // Step 1: Create temporary video with correct aspect ratio
-        const tempDir = FileSystem.cacheDirectory;
-        const tempFileName = `temp_${Date.now()}.mp4`;
-        const tempPath = `${tempDir}${tempFileName}`;
-  
-        // Command to force aspect ratio to 4:3
-        const command = `-i "${result.assets[0].uri}" -vf "scale=1920:1080:force_original_aspect_ratio=1" -c:v mpeg4 -c:a copy "${tempPath}"`;
+const tempDir = FileSystem.cacheDirectory;
+const tempFileName = `temp_${Date.now()}.mp4`;
+const tempPath = `${tempDir}${tempFileName}`;
+
+// Updated command to force 1:1 aspect ratio with preserved content
+const command = `-i "${result.assets[0].uri}" -vf "scale=1080:1080:force_original_aspect_ratio=decrease,pad=1080:1080:(ow-iw)/2:(oh-ih)/2:black" -c:v mpeg4 -c:a copy "${tempPath}"`;
   
         console.log('FFmpeg command:', command);
         const session = await FFmpegKit.execute(command);
