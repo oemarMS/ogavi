@@ -26,7 +26,7 @@ import {
 } from "react-native-responsive-screen";
 import * as Font from "expo-font";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface TemplateImgDualProps {
   aspectRatio: number;
@@ -194,8 +194,8 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.inner}>
             <Text style={styles.header}>{title}</Text>
-            <ViewShot 
-              ref={viewShotRef} 
+            <ViewShot
+              ref={viewShotRef}
               options={{ format: "jpg", quality: 1 }}
               style={styles.viewShot}
             >
@@ -211,7 +211,7 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                   textAlignVertical="center"
                   textAlign="center"
                   blurOnSubmit={false}
-                  returnKeyType="default"
+                  returnKeyType= "default"
                   onBlur={() => Keyboard.dismiss()}
                   onFocus={handleFocus}
                 />
@@ -227,7 +227,9 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                       />
                     ) : (
                       <View style={[styles.placeholder, { aspectRatio }]}>
-                        <Text style={styles.placeholderText}>Pilih Gambar Kiri</Text>
+                        <Text style={styles.placeholderText}>
+                          Pilih Gambar Kiri
+                        </Text>
                       </View>
                     )}
                     <TextInput
@@ -239,6 +241,10 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                       multiline={true}
                       textAlignVertical="center"
                       textAlign="center"
+                      blurOnSubmit={true}
+                      returnKeyType="default"
+                      onBlur={() => Keyboard.dismiss()}
+                      onFocus={handleFocus}
                     />
                   </View>
 
@@ -252,7 +258,9 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                       />
                     ) : (
                       <View style={[styles.placeholder, { aspectRatio }]}>
-                        <Text style={styles.placeholderText}>Pilih Gambar Kanan</Text>
+                        <Text style={styles.placeholderText}>
+                          Pilih Gambar Kanan
+                        </Text>
                       </View>
                     )}
                     <TextInput
@@ -264,6 +272,10 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                       multiline={true}
                       textAlignVertical="center"
                       textAlign="center"
+                      blurOnSubmit={true}
+                      returnKeyType="default"
+                      onBlur={() => Keyboard.dismiss()}
+                      onFocus={handleFocus}
                     />
                   </View>
                 </View>
@@ -287,7 +299,10 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.saveButton} onPress={saveToGallery}>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={saveToGallery}
+              >
                 <Text style={styles.saveButtonText}>SIMPAN KE GALERI</Text>
               </TouchableOpacity>
 
@@ -377,7 +392,6 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: "48%",
-    
   },
   image: {
     width: "100%",
@@ -437,7 +451,7 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: hp("1%"),
     minHeight: hp("4%"),
-    flexGrow : 1,
+    flexGrow: 1,
   },
   saveButton: {
     backgroundColor: "#6A1B9A",
