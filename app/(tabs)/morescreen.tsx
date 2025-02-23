@@ -15,14 +15,25 @@ export default function MoreScreen() {
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={[
+      styles.container,
+      { backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }
+    ]}>
       {menuItems.map((item, index) => (
         <TouchableOpacity
           key={index}
-          style={styles.menuItem}
+          style={[
+            styles.menuItem,
+            { borderBottomColor: colorScheme === 'dark' ? '#333' : '#ccc' }
+          ]}
           onPress={() => router.push(item.route)}
         >
-          <Text style={styles.menuText}>{item.title}</Text>
+          <Text style={[
+            styles.menuText,
+            { color: colorScheme === 'dark' ? '#fff' : '#000' }
+          ]}>
+            {item.title}
+          </Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -37,7 +48,6 @@ const styles = StyleSheet.create({
   menuItem: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
   },
   menuText: {
     fontSize: 16,
