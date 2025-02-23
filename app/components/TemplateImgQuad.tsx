@@ -13,6 +13,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import * as ImagePicker from "expo-image-picker";
@@ -24,6 +25,9 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import * as Font from "expo-font";
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const ASPECT_RATIO = SCREEN_HEIGHT / SCREEN_WIDTH;
 
 interface TemplateImgQuadProps {
   aspectRatio: number;
@@ -90,7 +94,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
     setTimeout(() => {
       inputRef.current?.measureInWindow((x, y, width, height) => {
         scrollViewRef.current?.scrollTo({
-          y: y,
+          y: y - hp("10%"),
           animated: true,
         });
       });
@@ -225,7 +229,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? hp("10%") : 0}
       style={styles.container}
     >
       {isLoading && (
@@ -251,7 +255,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
                   placeholder="Tuliskan keterangan utama di sini..."
                   placeholderTextColor="maroon"
                   multiline={true}
-                  textAlignVertical="top"
+                  textAlignVertical="center"
                   textAlign="center"
                   blurOnSubmit={false}
                   onFocus={handleFocus}
@@ -333,7 +337,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
                 <Slider
                   style={styles.slider}
                   minimumValue={10}
-                  maximumValue={30}
+                  maximumValue={60}
                   step={1}
                   value={mainFontSize}
                   onValueChange={setTempMainFontSize}
@@ -348,7 +352,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
                 <Slider
                   style={styles.slider}
                   minimumValue={10}
-                  maximumValue={30}
+                  maximumValue={60}
                   step={1}
                   value={imageFontSize}
                   onValueChange={setTempImageFontSize}
@@ -367,10 +371,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: Platform.OS === "ios" ? hp("5%") : hp("2%"),
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "space-between",
+    paddingHorizontal: wp("2%"),
   },
   inner: {
     flex: 1,
@@ -380,9 +386,11 @@ const styles = StyleSheet.create({
   },
   header: {
     fontFamily: "RobotoBold",
-    fontSize: RFValue(24),
+    fontSize: RFValue(24, 812),
     color: "#6A1B9A",
     marginBottom: hp("2%"),
+    textalign: "center",
+    paddingHorizontal: wp("2%")
   },
   quadImageContainer: {
     width: wp("95%"),

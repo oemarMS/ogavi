@@ -13,6 +13,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import * as ImagePicker from "expo-image-picker";
@@ -25,11 +26,10 @@ import {
 } from "react-native-responsive-screen";
 import * as Font from "expo-font";
 
-// Props interface buat customization
 interface TemplateBaseProps {
-  aspectRatio: number; // Buat ngatur ratio image (e.g., 4/3, 3/4, 16/9)
-  title: string; // Title template (e.g., "Template 4:3")
-  needsPermission?: boolean; // Optional permission check
+  aspectRatio: number;
+  title: string;
+  needsPermission?: boolean;
 }
 
 const TemplateBase: React.FC<TemplateBaseProps> = ({
@@ -37,7 +37,6 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
   title,
   needsPermission = false,
 }) => {
-  // State management
   const [selectedImage, setSelectedImage] = useState<{
     uri: string;
     width: number;
@@ -47,13 +46,24 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
   const [fontSize, setFontSize] = useState(14);
   const [tempFontSize, setTempFontSize] = useState(14);
   const [isLoading, setIsLoading] = useState(false);
+  const [orientation, setOrientation] = useState(
+    Dimensions.get("window").width < Dimensions.get("window").height
+      ? "portrait"
+      : "landscape"
+  );
 
-  // Refs setup
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const viewShotRef = useRef<ViewShot>(null);
 
-  // Permission check (kalo needsPermission = true)
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
+      setOrientation(window.width < window.height ? "portrait" : "landscape");
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
   useEffect(() => {
     if (needsPermission) {
       const requestPermission = async () => {
@@ -69,12 +79,11 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
     }
   }, [needsPermission]);
 
-  // Handlers
   const handleFocus = () => {
     setTimeout(() => {
       inputRef.current?.measureInWindow((x, y, width, height) => {
         scrollViewRef.current?.scrollTo({
-          y: y,
+          y: y - hp("10%"),
           animated: true,
         });
       });
@@ -91,18 +100,15 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
   const pickImage = async () => {
     setIsLoading(true);
     try {
-      // Kalo aspect ratio 4:3, array-nya harus [4, 3]
-      // Kalo 3:4, array-nya harus [3, 4]
-      // Kalo 16:9, array-nya harus [16, 9]
       const [width, height] =
         aspectRatio > 1
-          ? [Math.round(aspectRatio * 10), 10] // untuk ratio > 1 (misal 4:3)
-          : [10, Math.round((1 / aspectRatio) * 10)]; // untuk ratio < 1 (misal 3:4)
+          ? [Math.round(aspectRatio * 10), 10]
+          : [10, Math.round((1 / aspectRatio) * 10)];
 
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [width, height], // 👈 Fix aspect ratio disini
+        aspect: [width, height],
         quality: 1,
       });
 
@@ -151,30 +157,12 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
     }
   };
 
-  // Font loading
   const [fontsLoaded] = Font.useFonts({
     Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
     RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
   });
 
-  //useEffect buat make sure font ke-load
-  useEffect(() => {
-    const loadFonts = async () => {
-      try {
-        await Font.loadAsync({
-          Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
-          RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
-        });
-      } catch (error) {
-        console.log("Error loading fonts:", error);
-      }
-    };
-
-    loadFonts();
-  }, []);
-
   if (!fontsLoaded) {
-    console.log("Fonts not loaded yet...");
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#6A1B9A" />
@@ -183,10 +171,15 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
     );
   }
 
+  const imageContainerStyle = {
+    ...styles.imageContainer,
+    width: orientation === "landscape" ? wp("70%") : wp("90%"),
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? hp("10%") : 0}
       style={styles.container}
     >
       {isLoading && (
@@ -203,7 +196,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
           <View style={styles.inner}>
             <Text style={styles.header}>{title}</Text>
             <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 1 }}>
-              <View style={styles.imageContainer}>
+              <View style={imageContainerStyle}>
                 {selectedImage ? (
                   <Image
                     source={{ uri: selectedImage.uri }}
@@ -224,7 +217,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
                   placeholder="Tuliskan keterangan gambar di sini..."
                   placeholderTextColor="#ffffff80"
                   multiline={true}
-                  textAlignVertical="top"
+                  textAlignVertical="center"
                   textAlign="center"
                   blurOnSubmit={true}
                   onBlur={() => Keyboard.dismiss()}
@@ -248,7 +241,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
               <Slider
                 style={styles.slider}
                 minimumValue={10}
-                maximumValue={30}
+                maximumValue={60}
                 step={1}
                 value={fontSize}
                 onValueChange={(value) => setTempFontSize(value)}
@@ -266,65 +259,66 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: Platform.OS === "ios" ? hp("5%") : hp("2%"),
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "space-between",
+    paddingHorizontal: wp("2%"),
   },
   inner: {
     flex: 1,
     alignItems: "center",
     paddingTop: hp("2%"),
-    paddingBottom: hp("2%"),
+    paddingBottom: Platform.OS === "ios" ? hp("4%") : hp("2%"),
   },
   header: {
     fontFamily: "RobotoBold",
-    fontSize: RFValue(24),
+    fontSize: RFValue(24, 812),
     color: "#6A1B9A",
     marginBottom: hp("2%"),
+    textAlign: "center",
+    paddingHorizontal: wp("2%"),
   },
   imageContainer: {
-    width: wp("90%"),
+    maxWidth: 600,
     borderWidth: 1,
     borderColor: "#ccc",
     padding: wp("1%"),
     backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   placeholder: {
-    width: wp("88%"),
+    width: "100%",
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
+    minHeight: hp("20%"),
   },
   buttonText: {
     fontFamily: "RobotoBold",
     color: "#6A1B9A",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   placeholderText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(14),
+    fontSize: RFValue(14, 812),
     color: "#666",
   },
   caption: {
     fontFamily: "RobotoBold",
-    // Force Roboto di semua platform
-    ...Platform.select({
-      ios: {
-        fontFamily: "RobotoBold",
-      },
-      android: {
-        fontFamily: "RobotoBold",
-      },
-    }),
     marginTop: hp("0.5%"),
     padding: wp("2%"),
     backgroundColor: "red",
     color: "white",
-    fontSize: RFValue(12),
     fontStyle: "normal",
     maxHeight: hp("20%"),
+    minHeight: hp("5%"),
     textAlign: "center",
   },
   button: {
@@ -335,6 +329,9 @@ const styles = StyleSheet.create({
     borderColor: "#6A1B9A",
     alignItems: "center",
     width: wp("50%"),
+    maxWidth: 300,
+    minHeight: hp("6%"),
+    justifyContent: "center",
   },
   saveButton: {
     marginTop: hp("1%"),
@@ -343,26 +340,30 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: "center",
     width: wp("50%"),
+    maxWidth: 300,
+    minHeight: hp("6%"),
+    justifyContent: "center",
   },
   saveButtonText: {
     fontFamily: "RobotoBold",
     color: "white",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   fontSizeControl: {
     marginTop: hp("2%"),
     width: wp("80%"),
+    maxWidth: 500,
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: wp("5%"),
   },
   fontSizeText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   slider: {
-    width: wp("80%"),
-    height: 40,
-    marginTop: 10,
+    width: "100%",
+    height: hp("5%"),
+    marginTop: hp("1%"),
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -378,8 +379,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   loadingText: {
-    fontWeight: "500",
-    fontSize: RFValue(16),
+    fontFamily: "Roboto",
+    fontSize: RFValue(16, 812),
     color: "#6A1B9A",
   },
 });

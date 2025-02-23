@@ -13,6 +13,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import * as ImagePicker from "expo-image-picker";
@@ -24,6 +25,9 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import * as Font from "expo-font";
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const ASPECT_RATIO = SCREEN_HEIGHT / SCREEN_WIDTH;
 
 interface TemplateDualCaptionProps {
   aspectRatio: number;
@@ -49,14 +53,31 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
   } | null>(null);
   const [leftCaptionText, setLeftCaptionText] = useState("");
   const [rightCaptionText, setRightCaptionText] = useState("");
-  const [fontSize, setFontSize] = useState(14);
-  const [tempFontSize, setTempFontSize] = useState(14);
+  const [fontSize, setFontSize] = useState(RFValue(14));
+  const [tempFontSize, setTempFontSize] = useState(RFValue(14));
   const [isLoading, setIsLoading] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   // Refs setup
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const viewShotRef = useRef<ViewShot>(null);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => setKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (needsPermission) {
@@ -77,19 +98,19 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
     setTimeout(() => {
       inputRef.current?.measureInWindow((x, y, width, height) => {
         scrollViewRef.current?.scrollTo({
-          y: y,
+          y: y - hp("10%"),
           animated: true,
         });
       });
     }, 100);
   };
 
-  const handleTextChange = (text: string) => {
-    setLeftCaptionText(text);
-    setRightCaptionText(text);
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+  const handleTextChange = (text: string, side: "left" | "right") => {
+    if (side === "left") {
+      setLeftCaptionText(text);
+    } else {
+      setRightCaptionText(text);
+    }
   };
 
   const pickImage = async (side: "left" | "right") => {
@@ -101,7 +122,7 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
           : [10, Math.round((1 / aspectRatio) * 10)];
 
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [width, height],
         quality: 1,
@@ -161,21 +182,6 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
     RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
   });
 
-  useEffect(() => {
-    const loadFonts = async () => {
-      try {
-        await Font.loadAsync({
-          Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
-          RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
-        });
-      } catch (error) {
-        console.log("Error loading fonts:", error);
-      }
-    };
-
-    loadFonts();
-  }, []);
-
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -185,12 +191,11 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
     );
   }
 
-  // Modified ViewShot section in return statement
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       style={styles.container}
+      keyboardVerticalOffset={Platform.OS === "ios" ? hp("10%") : 0}
     >
       {isLoading && (
         <View style={styles.loadingOverlay}>
@@ -199,13 +204,20 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
       )}
       <ScrollView
         ref={scrollViewRef}
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={[
+          styles.scrollContainer,
+          keyboardVisible && styles.scrollContainerWithKeyboard,
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.inner}>
             <Text style={styles.header}>{title}</Text>
-            <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 1 }}>
+            <ViewShot
+              ref={viewShotRef}
+              options={{ format: "jpg", quality: 1 }}
+              style={styles.viewShot}
+            >
               <View style={styles.dualImageContainer}>
                 <View style={styles.imagesRow}>
                   {/* Left Image with Caption */}
@@ -213,7 +225,8 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
                     {leftImage ? (
                       <Image
                         source={{ uri: leftImage.uri }}
-                        style={[styles.placeholder, { aspectRatio }]}
+                        style={[styles.image, { aspectRatio }]}
+                        resizeMode="cover"
                       />
                     ) : (
                       <View style={[styles.placeholder, { aspectRatio }]}>
@@ -223,15 +236,21 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
                       </View>
                     )}
                     <TextInput
-                      style={[styles.caption, { fontSize: fontSize }]}
+                      style={[
+                        styles.caption,
+                        { fontSize: fontSize },
+                        Platform.select({
+                          ios: { paddingVertical: hp("1%") },
+                        }),
+                      ]}
                       value={leftCaptionText}
-                      onChangeText={setLeftCaptionText}
+                      onChangeText={(text) => handleTextChange(text, "left")}
                       placeholder="Caption kiri..."
                       placeholderTextColor="#ffffff80"
-                      multiline={true}
+                      multiline
                       textAlignVertical="center"
-                      textAlign="center"
-                      blurOnSubmit={true}
+                      onFocus={handleFocus}
+                      ref={inputRef}
                     />
                   </View>
 
@@ -240,7 +259,8 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
                     {rightImage ? (
                       <Image
                         source={{ uri: rightImage.uri }}
-                        style={[styles.placeholder, { aspectRatio }]}
+                        style={[styles.image, { aspectRatio }]}
+                        resizeMode="cover"
                       />
                     ) : (
                       <View style={[styles.placeholder, { aspectRatio }]}>
@@ -250,54 +270,64 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
                       </View>
                     )}
                     <TextInput
-                      style={[styles.caption, { fontSize: fontSize }]}
+                      style={[
+                        styles.caption,
+                        { fontSize: fontSize },
+                        Platform.select({
+                          ios: { paddingVertical: hp("1%") },
+                        }),
+                      ]}
                       value={rightCaptionText}
-                      onChangeText={setRightCaptionText}
+                      onChangeText={(text) => handleTextChange(text, "right")}
                       placeholder="Caption kanan..."
                       placeholderTextColor="#ffffff80"
-                      multiline={true}
+                      multiline
                       textAlignVertical="center"
-                      textAlign="center"
-                      blurOnSubmit={true}
+                      onFocus={handleFocus}
                     />
                   </View>
                 </View>
               </View>
             </ViewShot>
 
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => pickImage("left")}
-              >
-                <Text style={styles.buttonText}>PILIH GAMBAR KIRI</Text>
-              </TouchableOpacity>
+            <View style={styles.controlsContainer}>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => pickImage("left")}
+                >
+                  <Text style={styles.buttonText}>PILIH GAMBAR KIRI</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => pickImage("right")}
+                >
+                  <Text style={styles.buttonText}>PILIH GAMBAR KANAN</Text>
+                </TouchableOpacity>
+              </View>
 
               <TouchableOpacity
-                style={styles.button}
-                onPress={() => pickImage("right")}
+                style={styles.saveButton}
+                onPress={saveToGallery}
               >
-                <Text style={styles.buttonText}>PILIH GAMBAR KANAN</Text>
+                <Text style={styles.saveButtonText}>SIMPAN KE GALERI</Text>
               </TouchableOpacity>
-            </View>
 
-            <TouchableOpacity style={styles.saveButton} onPress={saveToGallery}>
-              <Text style={styles.saveButtonText}>SIMPAN KE GALERI</Text>
-            </TouchableOpacity>
-
-            <View style={styles.fontSizeControl}>
-              <Text style={styles.fontSizeText}>
-                Ukuran Font: {tempFontSize}
-              </Text>
-              <Slider
-                style={styles.slider}
-                minimumValue={10}
-                maximumValue={30}
-                step={1}
-                value={fontSize}
-                onValueChange={(value) => setTempFontSize(value)}
-                onSlidingComplete={(value) => setFontSize(value)}
-              />
+              <View style={styles.fontSizeControl}>
+                <Text style={styles.fontSizeText}>
+                  Ukuran Font: {Math.round(tempFontSize)}
+                </Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={10}
+                  maximumValue={60}
+                  step={1}
+                  value={fontSize}
+                  onValueChange={setTempFontSize}
+                  onSlidingComplete={setFontSize}
+                />
+              </View>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -310,65 +340,67 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: Platform.OS === "ios" ? hp("5%") : hp("2%"),
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "space-between",
+    paddingHorizontal: wp("2%"),
+  },
+  scrollContainerWithKeyboard: {
+    paddingBottom: hp("20%"),
   },
   inner: {
     flex: 1,
     alignItems: "center",
-    paddingTop: hp("2%"),
-    paddingBottom: hp("2%"),
+    paddingVertical: hp("2%"),
   },
   header: {
     fontFamily: "RobotoBold",
-    fontSize: RFValue(24),
+    fontSize: RFValue(24, 812),
     color: "#6A1B9A",
     marginBottom: hp("2%"),
+    textAlign: "center",
+    paddingHorizontal: wp("2%"),
+  },
+  viewShot: {
+    width: wp("90%"),
   },
   dualImageContainer: {
-    width: wp("90%"),
+    width: "100%",
     borderWidth: 1,
     borderColor: "#ccc",
     padding: wp("1%"),
     backgroundColor: "#fff",
-    flexDirection: "column", // Changed to column
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   imagesRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
   },
+  imageWrapper: {
+    width: "48.5%",
+    marginHorizontal: wp("0.5%"),
+  },
+  image: {
+    width: "100%",
+    height: undefined,
+  },
   placeholder: {
     width: "100%",
+    height: undefined,
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "center",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: wp("90%"),
-    marginTop: hp("2%"),
-  },
-  button: {
-    padding: wp("3%"),
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: "#6A1B9A",
-    alignItems: "center",
-    width: wp("43%"),
-  },
-  buttonText: {
-    fontFamily: "RobotoBold",
-    color: "#6A1B9A",
-    fontSize: RFValue(12),
   },
   placeholderText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(12),
+    fontSize: RFValue(14, 812),
     color: "#666",
     textAlign: "center",
   },
@@ -378,16 +410,33 @@ const styles = StyleSheet.create({
     padding: wp("2%"),
     backgroundColor: "red",
     color: "white",
-    fontSize: RFValue(12),
-    fontStyle: "normal",
-    maxHeight: hp("20%"),
     textAlign: "center",
-    width: "100%", // Make sure caption spans full width of its container
-    flexGrow: 1, // Allow caption to grow vertically
+    width: "100%",
+    minHeight: hp("5%"),
+    flexGrow: 1,
   },
-  imageWrapper: {
-    width: "49%",
-    flexDirection: "column", // Stack image and caption vertically
+  controlsContainer: {
+    width: wp("90%"),
+    marginTop: hp("2%"),
+    alignItems: "center",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  button: {
+    padding: wp("3%"),
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: "#6A1B9A",
+    alignItems: "center",
+    width: "48%",
+  },
+  buttonText: {
+    fontFamily: "RobotoBold",
+    color: "#6A1B9A",
+    fontSize: RFValue(12, 812),
   },
   saveButton: {
     marginTop: hp("2%"),
@@ -396,25 +445,28 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: "center",
     width: wp("50%"),
+    maxWidth: 300,
+    minHeight: hp("6%"),
+    justifyContent: "center",
   },
   saveButtonText: {
     fontFamily: "RobotoBold",
     color: "white",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   fontSizeControl: {
     marginTop: hp("2%"),
-    width: wp("80%"),
+    width: "100%",
     alignItems: "center",
   },
   fontSizeText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
+    marginBottom: hp("1%"),
   },
   slider: {
-    width: wp("80%"),
-    height: 40,
-    marginTop: 10,
+    width: "100%",
+    height: hp("4%"),
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -430,8 +482,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   loadingText: {
-    fontWeight: "500",
-    fontSize: RFValue(16),
+    fontFamily: "Roboto",
+    fontSize: RFValue(16, 812),
     color: "#6A1B9A",
   },
 });

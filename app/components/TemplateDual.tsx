@@ -13,6 +13,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import * as ImagePicker from "expo-image-picker";
@@ -24,6 +25,8 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import * as Font from "expo-font";
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface TemplateDualProps {
   aspectRatio: number;
@@ -48,14 +51,27 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
     height: number;
   } | null>(null);
   const [captionText, setCaptionText] = useState("");
-  const [fontSize, setFontSize] = useState(14);
-  const [tempFontSize, setTempFontSize] = useState(14);
+  const [fontSize, setFontSize] = useState(RFValue(14));
+  const [tempFontSize, setTempFontSize] = useState(RFValue(14));
   const [isLoading, setIsLoading] = useState(false);
+  const [orientation, setOrientation] = useState(
+    SCREEN_WIDTH > SCREEN_HEIGHT ? "landscape" : "portrait"
+  );
 
   // Refs setup
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const viewShotRef = useRef<ViewShot>(null);
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
+      setOrientation(window.width > window.height ? "landscape" : "portrait");
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (needsPermission) {
@@ -99,7 +115,7 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
           : [10, Math.round((1 / aspectRatio) * 10)];
 
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [width, height],
         quality: 1,
@@ -159,21 +175,6 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
     RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
   });
 
-  useEffect(() => {
-    const loadFonts = async () => {
-      try {
-        await Font.loadAsync({
-          Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
-          RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
-        });
-      } catch (error) {
-        console.log("Error loading fonts:", error);
-      }
-    };
-
-    loadFonts();
-  }, []);
-
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -186,7 +187,7 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? hp("10%") : 0}
       style={styles.container}
     >
       {isLoading && (
@@ -196,21 +197,34 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
       )}
       <ScrollView
         ref={scrollViewRef}
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={[
+          styles.scrollContainer,
+          orientation === "landscape" && styles.landscapeScroll,
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.inner}>
+          <View
+            style={[
+              styles.inner,
+              orientation === "landscape" && styles.landscapeInner,
+            ]}
+          >
             <Text style={styles.header}>{title}</Text>
             <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 1 }}>
-              <View style={styles.dualImageContainer}>
+              <View
+                style={[
+                  styles.dualImageContainer,
+                  orientation === "landscape" && styles.landscapeDualContainer,
+                ]}
+              >
                 <View style={styles.imagesRow}>
-                  {/* Left Image */}
                   <View style={styles.imageWrapper}>
                     {leftImage ? (
                       <Image
                         source={{ uri: leftImage.uri }}
                         style={[styles.placeholder, { aspectRatio }]}
+                        resizeMode="cover"
                       />
                     ) : (
                       <View style={[styles.placeholder, { aspectRatio }]}>
@@ -221,12 +235,12 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
                     )}
                   </View>
 
-                  {/* Right Image */}
                   <View style={styles.imageWrapper}>
                     {rightImage ? (
                       <Image
                         source={{ uri: rightImage.uri }}
                         style={[styles.placeholder, { aspectRatio }]}
+                        resizeMode="cover"
                       />
                     ) : (
                       <View style={[styles.placeholder, { aspectRatio }]}>
@@ -246,7 +260,7 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
                   placeholder="Tuliskan keterangan gambar di sini..."
                   placeholderTextColor="#ffffff80"
                   multiline={true}
-                  textAlignVertical="top"
+                  textAlignVertical="center"
                   textAlign="center"
                   blurOnSubmit={true}
                   onBlur={() => Keyboard.dismiss()}
@@ -255,7 +269,12 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
               </View>
             </ViewShot>
 
-            <View style={styles.buttonContainer}>
+            <View
+              style={[
+                styles.buttonContainer,
+                orientation === "landscape" && styles.landscapeButtons,
+              ]}
+            >
               <TouchableOpacity
                 style={styles.button}
                 onPress={() => pickImage("left")}
@@ -271,18 +290,24 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.saveButton} onPress={saveToGallery}>
+            <TouchableOpacity
+              style={[
+                styles.saveButton,
+                orientation === "landscape" && styles.landscapeSaveButton,
+              ]}
+              onPress={saveToGallery}
+            >
               <Text style={styles.saveButtonText}>SIMPAN KE GALERI</Text>
             </TouchableOpacity>
 
             <View style={styles.fontSizeControl}>
               <Text style={styles.fontSizeText}>
-                Ukuran Font: {tempFontSize}
+                Ukuran Font: {Math.round(tempFontSize)}
               </Text>
               <Slider
                 style={styles.slider}
                 minimumValue={10}
-                maximumValue={30}
+                maximumValue={60}
                 step={1}
                 value={fontSize}
                 onValueChange={(value) => setTempFontSize(value)}
@@ -300,22 +325,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: Platform.OS === "ios" ? hp("5%") : hp("2%"),
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "space-between",
+    paddingHorizontal: wp("2%"),
+  },
+  landscapeScroll: {
+    paddingHorizontal: wp("5%"),
   },
   inner: {
     flex: 1,
     alignItems: "center",
     paddingTop: hp("2%"),
-    paddingBottom: hp("2%"),
+    paddingBottom: Platform.OS === "ios" ? hp("4%") : hp("2%"),
+  },
+  landscapeInner: {
+    paddingHorizontal: wp("2%"),
   },
   header: {
     fontFamily: "RobotoBold",
-    fontSize: RFValue(24),
+    fontSize: RFValue(24, 812),
     color: "#6A1B9A",
     marginBottom: hp("2%"),
+    textAlign: "center",
+    paddingHorizontal: wp("2%"),
   },
   dualImageContainer: {
     width: wp("90%"),
@@ -323,7 +358,15 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     padding: wp("1%"),
     backgroundColor: "#fff",
-    flexDirection: "column", // Changed to column
+    flexDirection: "column",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  landscapeDualContainer: {
+    width: wp("80%"),
   },
   imagesRow: {
     flexDirection: "row",
@@ -331,7 +374,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   imageWrapper: {
-    width: "49%", // Slightly less than 50% to account for spacing
+    width: "49%",
   },
   placeholder: {
     width: "100%",
@@ -339,12 +382,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
+    minHeight: hp("20%"),
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: wp("90%"),
     marginTop: hp("2%"),
+  },
+  landscapeButtons: {
+    width: wp("80%"),
   },
   button: {
     padding: wp("3%"),
@@ -353,27 +400,27 @@ const styles = StyleSheet.create({
     borderColor: "#6A1B9A",
     alignItems: "center",
     width: wp("43%"),
+    justifyContent: "center",
   },
   buttonText: {
     fontFamily: "RobotoBold",
     color: "#6A1B9A",
-    fontSize: RFValue(12),
+    fontSize: RFValue(12, 812),
   },
   placeholderText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(12),
+    fontSize: RFValue(14, 812),
     color: "#666",
-    textAlign: "center",
   },
   caption: {
     fontFamily: "RobotoBold",
-    marginTop: hp("0.5%"), // Add margin top
+    marginTop: hp("0.5%"),
     padding: wp("2%"),
     backgroundColor: "red",
     color: "white",
-    fontSize: RFValue(12),
     fontStyle: "normal",
     maxHeight: hp("20%"),
+    minHeight: hp("5%"),
     textAlign: "center",
   },
   saveButton: {
@@ -383,25 +430,33 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: "center",
     width: wp("50%"),
+    maxWidth: 300,
+    minHeight: hp("6%"),
+    justifyContent: "center",
+    alignSelf: "center",
+  },
+  landscapeSaveButton: {
+    width: wp("40%"),
   },
   saveButtonText: {
     fontFamily: "RobotoBold",
     color: "white",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   fontSizeControl: {
     marginTop: hp("2%"),
     width: wp("80%"),
+    maxWidth: 500,
     alignItems: "center",
+    paddingHorizontal: wp("5%"),
   },
   fontSizeText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   slider: {
     width: wp("80%"),
-    height: 40,
-    marginTop: 10,
+    height: hp("5%"),
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -417,8 +472,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   loadingText: {
-    fontWeight: "500",
-    fontSize: RFValue(16),
+    fontFamily: "Roboto",
+    fontSize: RFValue(16, 812),
     color: "#6A1B9A",
   },
 });
