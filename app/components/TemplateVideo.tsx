@@ -343,7 +343,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
               <Slider
                 style={styles.slider}
                 minimumValue={10}
-                maximumValue={30}
+                maximumValue={60}
                 step={1}
                 value={fontSize}
                 onValueChange={(value) => setTempFontSize(value)}
@@ -361,22 +361,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: Platform.OS === "ios" ? hp("5%") : hp("2%"),
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "space-between",
+    paddingHorizontal: wp("2%"),
   },
   inner: {
     flex: 1,
     alignItems: "center",
     paddingTop: hp("2%"),
-    paddingBottom: hp("2%"),
+    paddingBottom: Platform.OS === "ios" ? hp("4%") : hp("2%"),
   },
   header: {
     fontFamily: "RobotoBold",
-    fontSize: RFValue(24),
+    fontSize: RFValue(24, 812),
     color: "#6A1B9A",
     marginBottom: hp("2%"),
+    textAlign: "center",
+    paddingHorizontal: wp("2%"),
   },
   hiddenViewShot: {
     position: "absolute",
@@ -419,11 +423,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: "RobotoBold",
     color: "#6A1B9A",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   placeholderText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(14),
+    fontSize: RFValue(14, 812),
     color: "#666",
   },
   caption: {
@@ -432,7 +436,7 @@ const styles = StyleSheet.create({
     padding: wp("2%"),
     backgroundColor: "red",
     color: "white",
-    fontSize: RFValue(12),
+    fontSize: RFValue(12, 812),
     fontStyle: "normal",
     //minHeight: hp('10%'), // Ganti maxHeight jadi minHeight
     textAlign: "center",
@@ -460,7 +464,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontFamily: "RobotoBold",
     color: "white",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   fontSizeControl: {
     marginTop: hp("2%"),
@@ -470,7 +474,7 @@ const styles = StyleSheet.create({
   },
   fontSizeText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   slider: {
     width: wp("80%"),
@@ -492,7 +496,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontWeight: "500",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
     color: "#6A1B9A",
   },
   video: {
