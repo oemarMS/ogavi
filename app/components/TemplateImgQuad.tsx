@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     fontSize: RFValue(24, 812),
     color: "#6A1B9A",
     marginBottom: hp("2%"),
-    textalign: "center",
+    textAlign: "center",
     paddingHorizontal: wp("2%")
   },
   quadImageContainer: {
@@ -399,11 +399,15 @@ const styles = StyleSheet.create({
     paddingStart: wp("1%"),
     paddingEnd: wp("1%"),
     paddingTop: hp("0.5%"),
-    //paddingBottom: hp('1%'),
     backgroundColor: "#2e3c45",
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   imagesGrid: {
     width: "100%",
@@ -444,11 +448,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: "RobotoBold",
     color: "#6A1B9A",
-    fontSize: RFValue(12),
+    fontSize: RFValue(12, 812),
   },
   placeholderText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(12),
+    fontSize: RFValue(12, 812),
     color: "#666",
     textAlign: "center",
   },
@@ -457,7 +461,6 @@ const styles = StyleSheet.create({
     padding: wp("2%"),
     backgroundColor: "white",
     color: "maroon",
-    fontSize: RFValue(12),
     textAlign: "center",
     width: "100%",
     marginBottom: hp("2%"),
@@ -484,7 +487,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontFamily: "RobotoBold",
     color: "white",
-    fontSize: RFValue(16),
+    fontSize: RFValue(16, 812),
   },
   fontSizeControl: {
     marginTop: hp("2%"),
@@ -499,13 +502,13 @@ const styles = StyleSheet.create({
   },
   fontSizeText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(14),
+    fontSize: RFValue(14, 812),
     marginBottom: hp("1%"),
     textAlign: "center",
   },
   slider: {
     width: "100%",
-    height: 40,
+    height: hp("4%"),
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -521,8 +524,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   loadingText: {
-    fontWeight: "500",
-    fontSize: RFValue(16),
+    fontFamily: "Roboto",
+    fontSize: RFValue(16, 812),
     color: "#6A1B9A",
   },
 });

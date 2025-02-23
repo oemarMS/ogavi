@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#6A1B9A",
     alignItems: "center",
-    width: "48%",
+    width: wp("48%"),
   },
   buttonText: {
     fontFamily: "RobotoBold",
