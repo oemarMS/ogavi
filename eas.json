@@ -20,7 +20,7 @@
         "versionCode": 1
       },
       "ios": {
-        "buildNumber": "2" // Tambahkan buildNumber untuk iOS
+        "buildNumber": "1"
       }
     }
   },
