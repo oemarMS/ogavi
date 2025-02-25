@@ -22,8 +22,9 @@
       "ios": {
         "buildNumber": "2" // Tambahkan buildNumber untuk iOS
       }
-    },
-    "submit": {
-      "production": {}
     }
+  },
+  "submit": {
+    "production": {}
   }
+}
