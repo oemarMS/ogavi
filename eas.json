@@ -13,10 +13,17 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "version": "0.1.0",
+      "android": {
+        "buildType": "app-bundle",
+        "versionCode": 1
+      },
+      "ios": {
+        "buildNumber": "2" // Tambahkan buildNumber untuk iOS
+      }
+    },
+    "submit": {
+      "production": {}
     }
-  },
-  "submit": {
-    "production": {}
   }
-}
