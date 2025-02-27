@@ -63,6 +63,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
   const inputRef = useRef<TextInput>(null);
   const captionRef = useRef<View>(null);
   const viewShotRef = useRef<ViewShot>(null);
+  const previewShotRef = useRef<ViewShot>(null); // Tambahkan ref baru untuk preview
 
   // Handle font loading
   const [fontsLoaded] = Font.useFonts({
@@ -175,20 +176,21 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     }
   };
 
-  // Capture caption as image with precise dimensions matching the actual video size
+  // Capture the VISIBLE caption preview that the user actually sees
   const captureCaptionAsImage = async () => {
-    if (!viewShotRef.current || !videoMetadata) {
-      throw new Error("ViewShot ref or video metadata not available");
+    if (!previewShotRef.current || !videoMetadata) {
+      throw new Error("PreviewShot ref or video metadata not available");
     }
 
     try {
-      if (typeof viewShotRef.current.capture === "function") {
-        return await viewShotRef.current.capture();
+      // Capture the visible preview caption
+      if (typeof previewShotRef.current.capture === "function") {
+        return await previewShotRef.current.capture();
       } else {
-        throw new Error("ViewShot capture method is not available");
+        throw new Error("PreviewShot capture method is not available");
       }
     } catch (error) {
-      console.error("Error capturing caption:", error);
+      console.error("Error capturing caption preview:", error);
       throw error;
     }
   };
@@ -206,7 +208,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
   
     setIsLoading(true);
     try {
-      // 1. Capture the caption view as an image
+      // 1. Capture the VISIBLE caption preview that user sees
       const captionImageUri = await captureCaptionAsImage();
       console.log("Caption image captured at:", captionImageUri);
       
@@ -382,44 +384,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
         </View>
       )}
       
-      {/* Improved ViewShot for capturing the caption with proper dimensions */}
-      <ViewShot
-        ref={viewShotRef}
-        options={{
-          format: "png",
-          quality: 1,
-          result: "tmpfile",
-        }}
-        style={{
-          position: "absolute",
-          top: -9999,
-          left: -9999,
-          width: videoMetadata?.width || 1080,
-          backgroundColor: "red", // Make sure background is red
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            backgroundColor: "red", // Match preview background color
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 16,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: "RobotoBold",
-              color: "white",
-              fontSize: actualTextSize, // Use the calculated actual size
-              textAlign: "center",
-              padding: 8,
-            }}
-          >
-            {captionText}
-          </Text>
-        </View>
-      </ViewShot>
+      {/* HAPUS ViewShot lama yang tersembunyi dan tidak terlihat oleh user */}
       
       <ScrollView
         ref={scrollViewRef}
@@ -446,28 +411,37 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
                     isLooping
                   />
                   
-                  {/* Caption Preview */}
-                  <View
-                    ref={captionRef}
-                    style={[
-                      styles.captionPreview,
-                      {
-                        width: captionPreviewWidth,
-                      },
-                    ]}
-                    onLayout={handleCaptionLayout}
+                  {/* Wrap caption preview with ViewShot untuk di-capture */}
+                  <ViewShot
+                    ref={previewShotRef}
+                    options={{
+                      format: "png",
+                      quality: 1,
+                      result: "tmpfile",
+                    }}
                   >
-                    <Text
+                    <View
+                      ref={captionRef}
                       style={[
-                        styles.captionPreviewText,
+                        styles.captionPreview,
                         {
-                          fontSize: fontSize,
+                          width: captionPreviewWidth,
                         },
                       ]}
+                      onLayout={handleCaptionLayout}
                     >
-                      {captionText}
-                    </Text>
-                  </View>
+                      <Text
+                        style={[
+                          styles.captionPreviewText,
+                          {
+                            fontSize: fontSize,
+                          },
+                        ]}
+                      >
+                        {captionText}
+                      </Text>
+                    </View>
+                  </ViewShot>
                 </View>
               ) : (
                 <View style={[styles.placeholder, { aspectRatio: 1 }]}>
