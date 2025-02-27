@@ -13,6 +13,7 @@ import {
   Alert,
   ActivityIndicator,
   LayoutChangeEvent,
+  Dimensions,
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
 import Slider from "@react-native-community/slider";
@@ -52,6 +53,8 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(null);
   const [captionBackgroundHeight, setCaptionBackgroundHeight] = useState(0);
+  const [captionPreviewWidth, setCaptionPreviewWidth] = useState(wp("90%"));
+  const [actualTextSize, setActualTextSize] = useState(24); // Actual font size for final rendering
   
   const previewWidth = wp("90%");
 
@@ -82,6 +85,16 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       requestPermissions();
     }
   }, [needsPermission]);
+
+  // Calculate actual font size based on preview/video dimensions ratio
+  useEffect(() => {
+    if (videoMetadata) {
+      // Calculate the ratio between the actual video width and preview width
+      const ratio = videoMetadata.width / previewWidth;
+      // Scale the UI font size to match what it should be in the actual video
+      setActualTextSize(fontSize * ratio);
+    }
+  }, [fontSize, videoMetadata, previewWidth]);
 
   // Handle caption layout changes
   const handleCaptionLayout = (event: LayoutChangeEvent) => {
@@ -148,6 +161,9 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
         const metadata = await getVideoMetadata(originalUri);
         setVideoMetadata(metadata);
         
+        // Calculate caption preview width based on video aspect ratio
+        setCaptionPreviewWidth(previewWidth);
+        
         // Use original video for preview
         setSelectedVideo({ uri: originalUri });
       }
@@ -159,14 +175,18 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     }
   };
 
-  // Perbaikan: Fungsi untuk mengambil screenshot caption dengan lebih akurat
+  // Capture caption as image with precise dimensions matching the actual video size
   const captureCaptionAsImage = async () => {
-    if (!viewShotRef.current || typeof viewShotRef.current.capture !== 'function') {
-      throw new Error("ViewShot ref is not available");
+    if (!viewShotRef.current || !videoMetadata) {
+      throw new Error("ViewShot ref or video metadata not available");
     }
 
     try {
-      return await viewShotRef.current.capture();
+      if (typeof viewShotRef.current.capture === "function") {
+        return await viewShotRef.current.capture();
+      } else {
+        throw new Error("ViewShot capture method is not available");
+      }
     } catch (error) {
       console.error("Error capturing caption:", error);
       throw error;
@@ -194,12 +214,17 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       const videoWidth = videoMetadata?.width || 1080;
       const videoHeight = videoMetadata?.height || 1920;
       
-      // Calculate caption height based on the preview ratio but ensuring it's not too small
-      const captionHeightRatio = captionBackgroundHeight / previewWidth;
-      const videoCaptionHeight = Math.max(
-        Math.round(captionHeightRatio * videoWidth),
-        Math.round(videoWidth * 0.15) // Minimum 15% of video width for caption height
-      );
+      // Calculate precise caption height maintaining the same aspect ratio as preview
+      const captionPreviewAspectRatio = captionBackgroundHeight / captionPreviewWidth;
+      const videoCaptionHeight = Math.round(videoWidth * captionPreviewAspectRatio);
+      
+      console.log("DEBUG - Video dimensions:", { videoWidth, videoHeight });
+      console.log("DEBUG - Caption dimensions:", { 
+        previewWidth: captionPreviewWidth, 
+        previewHeight: captionBackgroundHeight,
+        calculatedHeight: videoCaptionHeight,
+        aspectRatio: captionPreviewAspectRatio
+      });
       
       // 3. Process the video with FFmpeg using precise overlay positioning
       const tempDir = FileSystem.cacheDirectory || "";
@@ -386,7 +411,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
             style={{
               fontFamily: "RobotoBold",
               color: "white",
-              fontSize: fontSize * 2, // Scale for higher resolution
+              fontSize: actualTextSize, // Use the calculated actual size
               textAlign: "center",
               padding: 8,
             }}
@@ -427,7 +452,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
                     style={[
                       styles.captionPreview,
                       {
-                        width: videoPreviewWidth,
+                        width: captionPreviewWidth,
                       },
                     ]}
                     onLayout={handleCaptionLayout}
