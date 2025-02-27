@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -29,6 +29,9 @@ import * as FileSystem from "expo-file-system";
 import { FFmpegKit, ReturnCode, FFprobeKit } from "ffmpeg-kit-react-native";
 import ViewShot from "react-native-view-shot";
 
+// Cache helpers
+const VIDEO_CACHE_DIR = `${FileSystem.cacheDirectory}video_cache/`;
+
 interface TemplateVideoProps {
   title: string;
   needsPermission?: boolean;
@@ -40,21 +43,31 @@ interface VideoMetadata {
   duration: number;
 }
 
+// Loading overlay component
+const LoadingOverlay = ({ message = "" }: { message?: string }) => (
+  <View style={styles.loadingOverlay}>
+    <ActivityIndicator size="large" color="#6A1B9A" />
+    {message ? <Text style={styles.loadingText}>{message}</Text> : null}
+  </View>
+);
+
 const TemplateVideo: React.FC<TemplateVideoProps> = ({
   title,
   needsPermission = false,
 }) => {
-  const [selectedVideo, setSelectedVideo] = useState<{ uri: string } | null>(
-    null
-  );
+  const [selectedVideo, setSelectedVideo] = useState<{ uri: string } | null>(null);
   const [captionText, setCaptionText] = useState("");
   const [fontSize, setFontSize] = useState(24);
   const [tempFontSize, setTempFontSize] = useState(24);
   const [isLoading, setIsLoading] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState("");
   const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(null);
   const [captionBackgroundHeight, setCaptionBackgroundHeight] = useState(0);
   const [captionPreviewWidth, setCaptionPreviewWidth] = useState(wp("90%"));
   const [actualTextSize, setActualTextSize] = useState(24); // Actual font size for final rendering
+  
+  // Cache state
+  const [cacheInitialized, setCacheInitialized] = useState(false);
   
   const previewWidth = wp("90%");
 
@@ -63,7 +76,41 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
   const inputRef = useRef<TextInput>(null);
   const captionRef = useRef<View>(null);
   const viewShotRef = useRef<ViewShot>(null);
-  const previewShotRef = useRef<ViewShot>(null); // Tambahkan ref baru untuk preview
+  const previewShotRef = useRef<ViewShot>(null);
+
+  // Initialize cache directory
+  useEffect(() => {
+    const initCache = async () => {
+      try {
+        const dirInfo = await FileSystem.getInfoAsync(VIDEO_CACHE_DIR);
+        if (!dirInfo.exists) {
+          await FileSystem.makeDirectoryAsync(VIDEO_CACHE_DIR, { intermediates: true });
+        }
+        
+        // Cleanup files yang lebih tua dari 24 jam dengan timestamp di nama file
+        const files = await FileSystem.readDirectoryAsync(VIDEO_CACHE_DIR);
+        const now = new Date().getTime();
+        
+        for (const file of files) {
+          try {
+            // Extract timestamp dari nama file (format: cache_1234567890_keyname.mp4)
+            const timestamp = parseInt(file.split('_')[1]);
+            if (timestamp && now - timestamp > 24 * 60 * 60 * 1000) {
+              await FileSystem.deleteAsync(`${VIDEO_CACHE_DIR}${file}`);
+            }
+          } catch (err) {
+            console.log(`Error processing file ${file}:`, err);
+          }
+        }
+        
+        setCacheInitialized(true);
+      } catch (error) {
+        console.log("Cache initialization error:", error);
+      }
+    };
+    
+    initCache();
+  }, []);
 
   // Handle font loading
   const [fontsLoaded] = Font.useFonts({
@@ -71,6 +118,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
   });
 
+  // Request permissions effect
   useEffect(() => {
     if (needsPermission) {
       const requestPermissions = async () => {
@@ -97,23 +145,82 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     }
   }, [fontSize, videoMetadata, previewWidth]);
 
+  // Cache helpers
+  const getCacheKey = useCallback((videoUri: string, captionText: string, fontSize: number) => {
+    // Bersihkan cache key dari karakter yang tidak valid untuk filename
+    const safeText = captionText.substring(0, 10).replace(/[^a-z0-9]/gi, '_');
+    return `${videoUri.split('/').pop()}_${safeText}_${fontSize}`;
+  }, []);
+
+  const checkVideoCache = useCallback(async (cacheKey: string) => {
+    if (!cacheInitialized) return null;
+    
+    try {
+      // Scan directory untuk mencari file yang cocok dengan cache key
+      const files = await FileSystem.readDirectoryAsync(VIDEO_CACHE_DIR);
+      const matchingFile = files.find(file => file.includes(cacheKey));
+      
+      if (matchingFile) {
+        const cachePath = `${VIDEO_CACHE_DIR}${matchingFile}`;
+        const fileInfo = await FileSystem.getInfoAsync(cachePath);
+        if (fileInfo.exists) {
+          return cachePath;
+        }
+      }
+    } catch (err) {
+      console.log("Cache check error:", err);
+    }
+    return null;
+  }, [cacheInitialized]);
+
+  const saveToCache = useCallback(async (tempPath: string, cacheKey: string) => {
+    if (!cacheInitialized) return;
+    
+    const timestamp = new Date().getTime();
+    const cachePath = `${VIDEO_CACHE_DIR}cache_${timestamp}_${cacheKey}.mp4`;
+    try {
+      await FileSystem.copyAsync({
+        from: tempPath,
+        to: cachePath
+      });
+      return cachePath;
+    } catch (err) {
+      console.log("Save to cache error:", err);
+      return null;
+    }
+  }, [cacheInitialized]);
+
   // Handle caption layout changes
-  const handleCaptionLayout = (event: LayoutChangeEvent) => {
+  const handleCaptionLayout = useCallback((event: LayoutChangeEvent) => {
     const { height } = event.nativeEvent.layout;
     setCaptionBackgroundHeight(height);
-  };
+  }, []);
 
-  // Text change handler dengan line management
-  const handleTextChange = (text: string) => {
+  // Text change handler dengan debounce
+  const handleTextChange = useCallback((text: string) => {
     setCaptionText(text);
 
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  };
+    
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Get video metadata using FFprobeKit
-  const getVideoMetadata = async (videoUri: string): Promise<VideoMetadata> => {
+  // Focus handler
+  const handleFocus = useCallback(() => {
+    setTimeout(() => {
+      inputRef.current?.measureInWindow((_, y) => {
+        scrollViewRef.current?.scrollTo({
+          y: y,
+          animated: true,
+        });
+      });
+    }, 100);
+  }, []);
+
+  // Get video metadata with memo
+  const getVideoMetadata = useCallback(async (videoUri: string): Promise<VideoMetadata> => {
     try {
       // Run FFprobe to get video information
       const session = await FFprobeKit.execute(`-v error -select_streams v:0 -show_entries stream=width,height,duration -of json "${videoUri}"`);
@@ -133,21 +240,11 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       // Return default values if there's an error
       return { width: 1080, height: 1080, duration: 0 };
     }
-  };
+  }, []);
 
-  const handleFocus = () => {
-    setTimeout(() => {
-      inputRef.current?.measureInWindow((_, y) => {
-        scrollViewRef.current?.scrollTo({
-          y: y,
-          animated: true,
-        });
-      });
-    }, 100);
-  };
-
-  const pickVideo = async () => {
+  const pickVideo = useCallback(async () => {
     setIsLoading(true);
+    setProcessingStatus("Mengambil video...");
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Videos,
@@ -158,6 +255,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       if (!result.canceled && result.assets.length > 0) {
         const originalUri = result.assets[0].uri;
         
+        setProcessingStatus("Membaca metadata video...");
         // Get video metadata
         const metadata = await getVideoMetadata(originalUri);
         setVideoMetadata(metadata);
@@ -173,29 +271,81 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       Alert.alert("Error", "Ada masalah saat memilih video");
     } finally {
       setIsLoading(false);
+      setProcessingStatus("");
     }
-  };
+  }, [getVideoMetadata, previewWidth]);
 
-  // Capture the VISIBLE caption preview that the user actually sees
-  const captureCaptionAsImage = async () => {
+  // Capture the VISIBLE caption preview with error handling
+  const captureCaptionAsImage = useCallback(async () => {
     if (!previewShotRef.current || !videoMetadata) {
       throw new Error("PreviewShot ref or video metadata not available");
     }
 
     try {
-      // Capture the visible preview caption
-      if (typeof previewShotRef.current.capture === "function") {
-        return await previewShotRef.current.capture();
-      } else {
-        throw new Error("PreviewShot capture method is not available");
-      }
+      // Capture with timeout handling
+      const capturePromise = new Promise(async (resolve, reject) => {
+        try {
+          const currentRef = previewShotRef.current;
+          if (currentRef && typeof currentRef.capture === "function") {
+            const result = await currentRef.capture();
+            
+            // Verify the capture
+            const fileInfo = await FileSystem.getInfoAsync(result);
+            if (!fileInfo.exists || fileInfo.size === 0) {
+              reject(new Error("Caption image is invalid"));
+              return;
+            }
+            
+            resolve(result);
+          } else {
+            reject(new Error("PreviewShot capture method is not available"));
+          }
+        } catch (err) {
+          reject(err);
+        }
+      });
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Caption capture timeout")), 5000);
+      });
+      
+      return await Promise.race([capturePromise, timeoutPromise]);
     } catch (error) {
       console.error("Error capturing caption preview:", error);
       throw error;
     }
-  };
+  }, [videoMetadata]);
 
-  const processVideo = async () => {
+  // Create a red background image for the caption - Existing code, no changes
+  const createRedBackgroundImage = useCallback(async (width: number, height: number): Promise<string> => {
+    const tempDir = FileSystem.cacheDirectory || "";
+    const redImagePath = `${tempDir}red_bg_${Date.now()}.png`;
+  
+    // Ensure dimensions are integers
+    const roundedWidth = Math.round(width);
+    const roundedHeight = Math.round(height);
+  
+    // Generate a solid red image with the specified dimensions
+    const command = `-f lavfi -i color=c=red:s=${roundedWidth}x${roundedHeight} -frames:v 1 "${redImagePath}"`;
+    console.log("FFmpeg Red Background Create Command:", command);
+  
+    const session = await FFmpegKit.execute(command);
+    const returnCode = await session.getReturnCode();
+  
+    if (ReturnCode.isSuccess(returnCode)) {
+      return redImagePath;
+    } else {
+      const log = await session.getLogs();
+      const output = await session.getOutput();
+      console.error("FFmpeg Red Background Create Error Log:", log);
+      console.error("FFmpeg Red Background Create Output:", output);
+      throw new Error("Failed to create red background image");
+    }
+  }, []);
+
+  // Main video processing function - KEEPING THE ORIGINAL CORE LOGIC
+  const processVideo = useCallback(async () => {
     if (!selectedVideo) {
       Alert.alert("Pilih video dulu sebelum disimpan 🔥");
       return;
@@ -207,8 +357,28 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     }
   
     setIsLoading(true);
+    setProcessingStatus("Menyiapkan proses...");
+    
     try {
+      // NEW: Check cache first
+      const cacheKey = getCacheKey(selectedVideo.uri, captionText, fontSize);
+      const cachedVideoPath = await checkVideoCache(cacheKey);
+      
+      if (cachedVideoPath) {
+        setProcessingStatus("Menggunakan video dari cache...");
+        // Save cached video to gallery
+        const asset = await MediaLibrary.createAssetAsync(cachedVideoPath);
+        await MediaLibrary.createAlbumAsync("MyApp", asset, false);
+        Alert.alert("🔥 Video berhasil tersimpan di galeri (dari cache)");
+        setIsLoading(false);
+        setProcessingStatus("");
+        return;
+      }
+      
+      // ORIGINAL PROCESSING CODE STARTS HERE - MINIMAL CHANGES
+      
       // 1. Capture the VISIBLE caption preview that user sees
+      setProcessingStatus("Menyiapkan caption...");
       const captionImageUri = await captureCaptionAsImage();
       console.log("Caption image captured at:", captionImageUri);
       
@@ -238,6 +408,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       const outputPath = `${tempDir}${outputFileName}`;
   
       // Step 1: Create a version of the video with padding at the bottom for caption
+      setProcessingStatus("Menambahkan padding ke video...");
       const paddingCommand = `-i "${selectedVideo.uri}" -vf "pad=iw:ih+${videoCaptionHeight}:0:0:black" -c:a copy "${tempVideoPath}"`;
       console.log("FFmpeg Padding Command:", paddingCommand);
       
@@ -251,10 +422,12 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       }
       
       // Step 2: Create a red background image that exactly matches caption dimensions
+      setProcessingStatus("Membuat background merah...");
       const redBackgroundPath = await createRedBackgroundImage(videoWidth, videoCaptionHeight);
       console.log("Red background created at:", redBackgroundPath);
       
       // Step 3: Overlay the red background at the bottom of the padded video
+      setProcessingStatus("Menambahkan background merah ke video...");
       const overlayCommand = `-i "${tempVideoPath}" -i "${redBackgroundPath}" -filter_complex "[0:v][1:v]overlay=0:H-h" -c:a copy "${tempWithRedPath}"`;
       console.log("FFmpeg Red Background Overlay Command:", overlayCommand);
       
@@ -268,6 +441,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       }
       
       // Step 4: Resize caption image to exactly match the size needed for the video
+      setProcessingStatus("Menyesuaikan ukuran caption...");
       const captionResizedPath = `${tempDir}caption_resized_${Date.now()}.png`;
       const resizeCommand = `-i "${captionImageUri}" -vf "scale=${videoWidth}:${videoCaptionHeight}" "${captionResizedPath}"`;
       console.log("FFmpeg Caption Resize Command:", resizeCommand);
@@ -282,6 +456,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       }
       
       // Step 5: Final composition - overlay the properly sized caption on top of the red background
+      setProcessingStatus("Menggabungkan caption dengan video...");
       const finalCommand = `-i "${tempWithRedPath}" -i "${captionResizedPath}" -filter_complex "[0:v][1:v]overlay=0:H-h" -c:a copy "${outputPath}"`;
       console.log("FFmpeg Final Composition Command:", finalCommand);
       
@@ -289,7 +464,12 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       const finalReturnCode = await finalSession.getReturnCode();
       
       if (ReturnCode.isSuccess(finalReturnCode)) {
+        // NEW: Save to cache
+        setProcessingStatus("Menyimpan ke cache...");
+        await saveToCache(outputPath, cacheKey);
+        
         // Save to gallery
+        setProcessingStatus("Menyimpan ke galeri...");
         const asset = await MediaLibrary.createAssetAsync(outputPath);
         await MediaLibrary.createAlbumAsync("MyApp", asset, false);
         Alert.alert("🔥 Video berhasil tersimpan di galeri");
@@ -311,47 +491,34 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       }
     } catch (error) {
       console.error("Error processing video:", error);
-      Alert.alert("Error", `Gagal memproses video`);
+      Alert.alert("Error", `Gagal memproses video: ${error}`);
     } finally {
       setIsLoading(false);
+      setProcessingStatus("");
     }
-  };
-  
-  // Create a red background image for the caption with precise dimensions
-  const createRedBackgroundImage = async (width: number, height: number): Promise<string> => {
-    const tempDir = FileSystem.cacheDirectory || "";
-    const redImagePath = `${tempDir}red_bg_${Date.now()}.png`;
-  
-    // Ensure dimensions are integers
-    const roundedWidth = Math.round(width);
-    const roundedHeight = Math.round(height);
-  
-    // Generate a solid red image with the specified dimensions
-    const command = `-f lavfi -i color=c=red:s=${roundedWidth}x${roundedHeight} -frames:v 1 "${redImagePath}"`;
-    console.log("FFmpeg Red Background Create Command:", command);
-  
-    const session = await FFmpegKit.execute(command);
-    const returnCode = await session.getReturnCode();
-  
-    if (ReturnCode.isSuccess(returnCode)) {
-      return redImagePath;
-    } else {
-      const log = await session.getLogs();
-      const output = await session.getOutput();
-      console.error("FFmpeg Red Background Create Error Log:", log);
-      console.error("FFmpeg Red Background Create Output:", output);
-      throw new Error("Failed to create red background image");
-    }
-  };
+  }, [
+    selectedVideo, 
+    captionText, 
+    fontSize, 
+    videoMetadata, 
+    captionBackgroundHeight, 
+    captionPreviewWidth, 
+    captureCaptionAsImage,
+    createRedBackgroundImage,
+    getCacheKey,
+    checkVideoCache,
+    saveToCache
+  ]);
 
-  // Calculate video preview dimensions
-  const getPreviewDimensions = () => {
+  // Calculate video preview dimensions with better performance
+  const getPreviewDimensions = useMemo(() => {
     if (!videoMetadata) {
       return { width: previewWidth, height: previewWidth };
     }
     
     const { width, height } = videoMetadata;
-    const aspectRatio = width / height;
+    // Safe check for aspect ratio
+    const aspectRatio = width && height ? width / height : 16/9;
     
     // Constrain to container width
     const previewHeight = previewWidth / aspectRatio;
@@ -360,7 +527,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       width: previewWidth,
       height: previewHeight,
     };
-  };
+  }, [videoMetadata, previewWidth]);
 
   if (!fontsLoaded) {
     return (
@@ -371,20 +538,14 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     );
   }
 
-  const { width: videoPreviewWidth, height: videoPreviewHeight } = getPreviewDimensions();
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
       {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#6A1B9A" />
-        </View>
+        <LoadingOverlay message={processingStatus} />
       )}
-      
-      {/* HAPUS ViewShot lama yang tersembunyi dan tidak terlihat oleh user */}
       
       <ScrollView
         ref={scrollViewRef}
@@ -401,14 +562,15 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
                   <Video
                     ref={videoRef}
                     style={{
-                      width: videoPreviewWidth,
-                      height: videoPreviewHeight,
+                      width: getPreviewDimensions.width,
+                      height: getPreviewDimensions.height,
                       alignSelf: "center",
                     }}
                     source={{ uri: selectedVideo.uri }}
                     useNativeControls
                     resizeMode={ResizeMode.CONTAIN}
                     isLooping
+                    shouldPlay={false} // Don't autoplay for better performance
                   />
                   
                   {/* Wrap caption preview with ViewShot untuk di-capture */}
@@ -465,7 +627,6 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
                 submitBehavior="blurAndSubmit"
                 onBlur={() => Keyboard.dismiss()}
                 onFocus={handleFocus}
-                maxLength={100} // Optional character limit
               />
               
               <View style={styles.fontSizeControl}>
@@ -525,7 +686,6 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: wp("90%"),
-    //borderWidth: 1,
     borderColor: "#ccc",
     padding: wp("1%"),
     backgroundColor: "#fff",
@@ -619,7 +779,7 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 999,
@@ -634,6 +794,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontSize: RFValue(16, 812),
     color: "#6A1B9A",
+    marginTop: 12,
   },
 });
 
