@@ -247,7 +247,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     setProcessingStatus("Mengambil video...");
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        mediaTypes: ["videos"],
         allowsEditing: true,
         quality: 1,
       });
