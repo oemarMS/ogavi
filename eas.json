@@ -7,10 +7,12 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "resourceClass": "large"
+      "resourceClass": "large",
+      "autoIncrement": true
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "autoIncrement": true
     },
     "production": {
       "autoIncrement": true
