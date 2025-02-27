@@ -25,21 +25,21 @@ import {
 } from "react-native-responsive-screen";
 import * as Font from "expo-font";
 import * as FileSystem from "expo-file-system";
-import { FFmpegKit, ReturnCode } from "ffmpeg-kit-react-native";
-import ViewShot, { captureRef } from "react-native-view-shot";
-
-interface ViewShotRef {
-  capture: () => Promise<string>;
-}
+import { FFmpegKit, ReturnCode, FFprobeKit } from "ffmpeg-kit-react-native";
+import ViewShot from "react-native-view-shot";
 
 interface TemplateVideoProps {
-  aspectRatio: number;
   title: string;
   needsPermission?: boolean;
 }
 
+interface VideoMetadata {
+  width: number;
+  height: number;
+  duration: number;
+}
+
 const TemplateVideo: React.FC<TemplateVideoProps> = ({
-  aspectRatio,
   title,
   needsPermission = false,
 }) => {
@@ -47,26 +47,25 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     null
   );
   const [captionText, setCaptionText] = useState("");
-  const [fontSize, setFontSize] = useState(14);
-  const [tempFontSize, setTempFontSize] = useState(14);
+  const [fontSize, setFontSize] = useState(24);
+  const [tempFontSize, setTempFontSize] = useState(24);
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState({});
-  const [captionHeight, setCaptionHeight] = useState(100);
-  const [captionWidth, setCaptionWidth] = useState(100);
+  const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(null);
+  const [captionBackgroundHeight, setCaptionBackgroundHeight] = useState(0);
+  
+  const previewWidth = wp("90%");
 
   const videoRef = useRef(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
-  // Tambahkan state untuk menyimpan jumlah baris dan style teks
+  const captionRef = useRef<View>(null);
   const viewShotRef = useRef<ViewShot>(null);
-  const [textLines, setTextLines] = useState<string[]>([]);
 
-  const handleCaptionLayout = (event: LayoutChangeEvent) => {
-    const { height } = event.nativeEvent.layout;
-    const { width } = event.nativeEvent.layout;
-    setCaptionHeight(height);
-    setCaptionWidth(width);
-  };
+  // Handle font loading
+  const [fontsLoaded] = Font.useFonts({
+    Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
+    RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
+  });
 
   useEffect(() => {
     if (needsPermission) {
@@ -84,9 +83,47 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     }
   }, [needsPermission]);
 
+  // Handle caption layout changes
+  const handleCaptionLayout = (event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    setCaptionBackgroundHeight(height);
+  };
+
+  // Text change handler dengan line management
+  const handleTextChange = (text: string) => {
+    setCaptionText(text);
+
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  // Get video metadata using FFprobeKit
+  const getVideoMetadata = async (videoUri: string): Promise<VideoMetadata> => {
+    try {
+      // Run FFprobe to get video information
+      const session = await FFprobeKit.execute(`-v error -select_streams v:0 -show_entries stream=width,height,duration -of json "${videoUri}"`);
+      const output = await session.getOutput();
+      
+      // Parse the JSON output
+      const data = JSON.parse(output);
+      const stream = data.streams[0];
+      
+      return {
+        width: parseInt(stream.width, 10),
+        height: parseInt(stream.height, 10),
+        duration: parseFloat(stream.duration || "0"),
+      };
+    } catch (error) {
+      console.error("Error getting video metadata:", error);
+      // Return default values if there's an error
+      return { width: 1080, height: 1080, duration: 0 };
+    }
+  };
+
   const handleFocus = () => {
     setTimeout(() => {
-      inputRef.current?.measureInWindow((x, y, width, height) => {
+      inputRef.current?.measureInWindow((_, y) => {
         scrollViewRef.current?.scrollTo({
           y: y,
           animated: true,
@@ -95,129 +132,208 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
     }, 100);
   };
 
-  // Update handleTextChange untuk better line management
-  const handleTextChange = (text: string) => {
-    setCaptionText(text);
-    // Split berdasarkan line break dan filter empty lines
-    const lines = text.split("\n").filter((line) => line.trim() !== "");
-    setTextLines(lines);
-
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-  };
-
   const pickVideo = async () => {
     setIsLoading(true);
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["videos"],
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         allowsEditing: true,
-        aspect: [1, 1], // Fix aspect ratio to 9:16
         quality: 1,
       });
 
       if (!result.canceled && result.assets.length > 0) {
-        // Step 1: Create temporary video with correct aspect ratio
-        const tempDir = FileSystem.cacheDirectory;
-        const tempFileName = `temp_${Date.now()}.mp4`;
-        const tempPath = `${tempDir}${tempFileName}`;
-
-        // Updated command to force 1:1 aspect ratio with preserved content
-        const command = `-i "${result.assets[0].uri}" -vf "scale=1080:1080:force_original_aspect_ratio=decrease,pad=1080:1080:(ow-iw)/2:(oh-ih)/2:black" -c:v mpeg4 -c:a copy "${tempPath}"`;
-
-        console.log("FFmpeg command:", command);
-        const session = await FFmpegKit.execute(command);
-        const returnCode = await session.getReturnCode();
-
-        if (ReturnCode.isSuccess(returnCode)) {
-          setSelectedVideo({ uri: tempPath });
-        } else {
-          throw new Error("Failed to process video aspect ratio");
-        }
+        const originalUri = result.assets[0].uri;
+        
+        // Get video metadata
+        const metadata = await getVideoMetadata(originalUri);
+        setVideoMetadata(metadata);
+        
+        // Use original video for preview
+        setSelectedVideo({ uri: originalUri });
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error picking video:", error);
       Alert.alert("Error", "Ada masalah saat memilih video");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const processVideo = async () => {
-    if (!selectedVideo) {
-      Alert.alert("Pilih video dulu sebelum disimpan 😅");
-      return;
+  // Perbaikan: Fungsi untuk mengambil screenshot caption dengan lebih akurat
+  const captureCaptionAsImage = async () => {
+    if (!viewShotRef.current || typeof viewShotRef.current.capture !== 'function') {
+      throw new Error("ViewShot ref is not available");
     }
 
+    try {
+      return await viewShotRef.current.capture();
+    } catch (error) {
+      console.error("Error capturing caption:", error);
+      throw error;
+    }
+  };
+
+  const processVideo = async () => {
+    if (!selectedVideo) {
+      Alert.alert("Pilih video dulu sebelum disimpan 🔥");
+      return;
+    }
+  
     if (!captionText.trim()) {
       Alert.alert("Masukkan caption terlebih dahulu");
       return;
     }
-
+  
     setIsLoading(true);
     try {
-      // Generate text image dengan capture
-      const textImage = await captureRef(viewShotRef, {
-        format: "png",
-        quality: 1,
-      });
-
-      if (!textImage) {
-        throw new Error("Failed to generate text image");
-      }
-
-      const tempDir = FileSystem.cacheDirectory;
-      const tempVideoName = `temp_${Date.now()}.mp4`;
+      // 1. Capture the caption view as an image
+      const captionImageUri = await captureCaptionAsImage();
+      console.log("Caption image captured at:", captionImageUri);
+      
+      // 2. Get video dimensions for proper scaling
+      const videoWidth = videoMetadata?.width || 1080;
+      const videoHeight = videoMetadata?.height || 1920;
+      
+      // Calculate caption height based on the preview ratio but ensuring it's not too small
+      const captionHeightRatio = captionBackgroundHeight / previewWidth;
+      const videoCaptionHeight = Math.max(
+        Math.round(captionHeightRatio * videoWidth),
+        Math.round(videoWidth * 0.15) // Minimum 15% of video width for caption height
+      );
+      
+      // 3. Process the video with FFmpeg using precise overlay positioning
+      const tempDir = FileSystem.cacheDirectory || "";
+      const tempVideoName = `temp_video_${Date.now()}.mp4`;
+      const tempWithRedName = `temp_with_red_${Date.now()}.mp4`;
       const outputFileName = `final_${Date.now()}.mp4`;
       const tempVideoPath = `${tempDir}${tempVideoName}`;
+      const tempWithRedPath = `${tempDir}${tempWithRedName}`;
       const outputPath = `${tempDir}${outputFileName}`;
-
-      // Step 1: Bikin video dengan area merah full width
-      const command1 = `-i "${selectedVideo.uri}" -vf "pad=iw:ih+${
-        captionHeight * 3.5
-      }:0:0[padded]" -c:v mpeg4 -c:a copy "${tempVideoPath}"`;
-
-      console.log("FFmpeg command 1:", command1);
-      const session1 = await FFmpegKit.execute(command1);
-      const returnCode1 = await session1.getReturnCode();
-
-      if (!ReturnCode.isSuccess(returnCode1)) {
-        throw new Error("Failed to create video with red box");
+  
+      // Step 1: Create a version of the video with padding at the bottom for caption
+      const paddingCommand = `-i "${selectedVideo.uri}" -vf "pad=iw:ih+${videoCaptionHeight}:0:0:black" -c:a copy "${tempVideoPath}"`;
+      console.log("FFmpeg Padding Command:", paddingCommand);
+      
+      const paddingSession = await FFmpegKit.execute(paddingCommand);
+      const paddingReturnCode = await paddingSession.getReturnCode();
+      
+      if (!ReturnCode.isSuccess(paddingReturnCode)) {
+        const log = await paddingSession.getLogs();
+        console.error("FFmpeg Padding Error Log:", log);
+        throw new Error("Failed to add padding to video");
       }
-
-      // Step 2: Update command buat text overlay yang full width
-      const command2 = `-i "${tempVideoPath}" -i "${textImage}" -filter_complex "[0:v][1:v]overlay=(W-w)/2:H-${
-        captionHeight * 3
-      }" -c:v mpeg4 -c:a copy "${outputPath}"`;
-
-      console.log("FFmpeg command 2:", command2);
-      const session2 = await FFmpegKit.execute(command2);
-      const returnCode2 = await session2.getReturnCode();
-
-      if (ReturnCode.isSuccess(returnCode2)) {
+      
+      // Step 2: Create a red background image that exactly matches caption dimensions
+      const redBackgroundPath = await createRedBackgroundImage(videoWidth, videoCaptionHeight);
+      console.log("Red background created at:", redBackgroundPath);
+      
+      // Step 3: Overlay the red background at the bottom of the padded video
+      const overlayCommand = `-i "${tempVideoPath}" -i "${redBackgroundPath}" -filter_complex "[0:v][1:v]overlay=0:H-h" -c:a copy "${tempWithRedPath}"`;
+      console.log("FFmpeg Red Background Overlay Command:", overlayCommand);
+      
+      const overlaySession = await FFmpegKit.execute(overlayCommand);
+      const overlayReturnCode = await overlaySession.getReturnCode();
+      
+      if (!ReturnCode.isSuccess(overlayReturnCode)) {
+        const log = await overlaySession.getLogs();
+        console.error("FFmpeg Overlay Error Log:", log);
+        throw new Error("Failed to overlay red background");
+      }
+      
+      // Step 4: Resize caption image to exactly match the size needed for the video
+      const captionResizedPath = `${tempDir}caption_resized_${Date.now()}.png`;
+      const resizeCommand = `-i "${captionImageUri}" -vf "scale=${videoWidth}:${videoCaptionHeight}" "${captionResizedPath}"`;
+      console.log("FFmpeg Caption Resize Command:", resizeCommand);
+      
+      const resizeSession = await FFmpegKit.execute(resizeCommand);
+      const resizeReturnCode = await resizeSession.getReturnCode();
+      
+      if (!ReturnCode.isSuccess(resizeReturnCode)) {
+        const log = await resizeSession.getLogs();
+        console.error("FFmpeg Resize Error Log:", log);
+        throw new Error("Failed to resize caption image");
+      }
+      
+      // Step 5: Final composition - overlay the properly sized caption on top of the red background
+      const finalCommand = `-i "${tempWithRedPath}" -i "${captionResizedPath}" -filter_complex "[0:v][1:v]overlay=0:H-h" -c:a copy "${outputPath}"`;
+      console.log("FFmpeg Final Composition Command:", finalCommand);
+      
+      const finalSession = await FFmpegKit.execute(finalCommand);
+      const finalReturnCode = await finalSession.getReturnCode();
+      
+      if (ReturnCode.isSuccess(finalReturnCode)) {
+        // Save to gallery
         const asset = await MediaLibrary.createAssetAsync(outputPath);
         await MediaLibrary.createAlbumAsync("MyApp", asset, false);
-        Alert.alert("🎉 Video berhasil tersimpan di galeri");
+        Alert.alert("🔥 Video berhasil tersimpan di galeri");
+        
+        // Clean up temporary files
+        try {
+          await FileSystem.deleteAsync(tempVideoPath);
+          await FileSystem.deleteAsync(captionResizedPath);
+          await FileSystem.deleteAsync(redBackgroundPath);
+          await FileSystem.deleteAsync(tempWithRedPath);
+          await FileSystem.deleteAsync(outputPath);
+        } catch (e) {
+          console.log("Cleanup error:", e);
+        }
       } else {
-        throw new Error("Failed to add text overlay");
+        const log = await finalSession.getLogs();
+        console.error("FFmpeg Final Error Log:", log);
+        throw new Error("Failed to create final video");
       }
-
-      // Cleanup
-      await FileSystem.deleteAsync(tempVideoPath);
-      await FileSystem.deleteAsync(outputPath);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error processing video:", error);
       Alert.alert("Error", `Gagal memproses video`);
     } finally {
       setIsLoading(false);
     }
   };
+  
+  // Create a red background image for the caption with precise dimensions
+  const createRedBackgroundImage = async (width: number, height: number): Promise<string> => {
+    const tempDir = FileSystem.cacheDirectory || "";
+    const redImagePath = `${tempDir}red_bg_${Date.now()}.png`;
+  
+    // Ensure dimensions are integers
+    const roundedWidth = Math.round(width);
+    const roundedHeight = Math.round(height);
+  
+    // Generate a solid red image with the specified dimensions
+    const command = `-f lavfi -i color=c=red:s=${roundedWidth}x${roundedHeight} -frames:v 1 "${redImagePath}"`;
+    console.log("FFmpeg Red Background Create Command:", command);
+  
+    const session = await FFmpegKit.execute(command);
+    const returnCode = await session.getReturnCode();
+  
+    if (ReturnCode.isSuccess(returnCode)) {
+      return redImagePath;
+    } else {
+      const log = await session.getLogs();
+      const output = await session.getOutput();
+      console.error("FFmpeg Red Background Create Error Log:", log);
+      console.error("FFmpeg Red Background Create Output:", output);
+      throw new Error("Failed to create red background image");
+    }
+  };
 
-  const [fontsLoaded] = Font.useFonts({
-    Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
-    RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
-  });
+  // Calculate video preview dimensions
+  const getPreviewDimensions = () => {
+    if (!videoMetadata) {
+      return { width: previewWidth, height: previewWidth };
+    }
+    
+    const { width, height } = videoMetadata;
+    const aspectRatio = width / height;
+    
+    // Constrain to container width
+    const previewHeight = previewWidth / aspectRatio;
+    
+    return {
+      width: previewWidth,
+      height: previewHeight,
+    };
+  };
 
   if (!fontsLoaded) {
     return (
@@ -227,6 +343,8 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       </View>
     );
   }
+
+  const { width: videoPreviewWidth, height: videoPreviewHeight } = getPreviewDimensions();
 
   return (
     <KeyboardAvoidingView
@@ -238,6 +356,46 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
           <ActivityIndicator size="large" color="#6A1B9A" />
         </View>
       )}
+      
+      {/* Improved ViewShot for capturing the caption with proper dimensions */}
+      <ViewShot
+        ref={viewShotRef}
+        options={{
+          format: "png",
+          quality: 1,
+          result: "tmpfile",
+        }}
+        style={{
+          position: "absolute",
+          top: -9999,
+          left: -9999,
+          width: videoMetadata?.width || 1080,
+          backgroundColor: "red", // Make sure background is red
+        }}
+      >
+        <View
+          style={{
+            width: "100%",
+            backgroundColor: "red", // Match preview background color
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 16,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "RobotoBold",
+              color: "white",
+              fontSize: fontSize * 2, // Scale for higher resolution
+              textAlign: "center",
+              padding: 8,
+            }}
+          >
+            {captionText}
+          </Text>
+        </View>
+      </ViewShot>
+      
       <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContainer}
@@ -247,71 +405,55 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
           <View style={styles.inner}>
             <Text style={styles.header}>{title}</Text>
 
-            {/* Hidden ViewShot component for text capture */}
-            <ViewShot
-              ref={viewShotRef}
-              options={{
-                format: "png",
-                quality: 1.0,
-                width: wp("100%"),
-                height: captionHeight,
-              }}
-              style={[
-                styles.hiddenViewShot,
-                {
-                  height: captionHeight,
-                  width: wp("100%"),
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.textContainer,
-                  {
-                    height: "auto",
-                    width: "100%",
-                  },
-                ]}
-                onLayout={handleCaptionLayout}
-              >
-                <Text
-                  style={[
-                    styles.captionText,
-                    {
-                      fontSize: fontSize,
-                      // Hapus lineHeight biar font ga gepeng
-                      width: "92%",
-                      //flexWrap: 'wrap', // Nambahin ini biar text bisa shrink dengan proporsional
-                    },
-                  ]}
-                  // Hapus adjustsFontSizeToFit karena ini yang bikin masalah
-                  // Hapus minimumFontScale karena udah ga dipake
-
-                  numberOfLines={3} // Kasih maksimal 3 baris aja biar readable
-                >
-                  {captionText}
-                </Text>
-              </View>
-            </ViewShot>
-
             <View style={styles.videoContainer}>
               {selectedVideo ? (
-                <Video
-                  ref={videoRef}
-                  style={[styles.video, { aspectRatio }]}
-                  source={{ uri: selectedVideo.uri }}
-                  useNativeControls
-                  resizeMode={ResizeMode.CONTAIN}
-                  isLooping
-                  onPlaybackStatusUpdate={(status) => setStatus(() => status)}
-                />
+                <View>
+                  <Video
+                    ref={videoRef}
+                    style={{
+                      width: videoPreviewWidth,
+                      height: videoPreviewHeight,
+                      alignSelf: "center",
+                    }}
+                    source={{ uri: selectedVideo.uri }}
+                    useNativeControls
+                    resizeMode={ResizeMode.CONTAIN}
+                    isLooping
+                  />
+                  
+                  {/* Caption Preview */}
+                  <View
+                    ref={captionRef}
+                    style={[
+                      styles.captionPreview,
+                      {
+                        width: videoPreviewWidth,
+                      },
+                    ]}
+                    onLayout={handleCaptionLayout}
+                  >
+                    <Text
+                      style={[
+                        styles.captionPreviewText,
+                        {
+                          fontSize: fontSize,
+                        },
+                      ]}
+                    >
+                      {captionText}
+                    </Text>
+                  </View>
+                </View>
               ) : (
-                <View style={[styles.placeholder, { aspectRatio }]}>
+                <View style={[styles.placeholder, { aspectRatio: 1 }]}>
                   <Text style={styles.placeholderText}>
                     Pilih Video dari Galeri
                   </Text>
                 </View>
               )}
+            </View>
+            
+            <View style={styles.controlsContainer}>
               <TextInput
                 ref={inputRef}
                 style={[styles.caption, { fontSize }]}
@@ -322,33 +464,34 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
                 multiline={true}
                 textAlignVertical="center"
                 textAlign="center"
-                blurOnSubmit={true}
+                submitBehavior="blurAndSubmit"
                 onBlur={() => Keyboard.dismiss()}
                 onFocus={handleFocus}
+                maxLength={100} // Optional character limit
               />
-            </View>
+              
+              <View style={styles.fontSizeControl}>
+                <Text style={styles.fontSizeText}>
+                  Ukuran Font: {tempFontSize}
+                </Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={14}
+                  maximumValue={60}
+                  step={1}
+                  value={fontSize}
+                  onValueChange={(value) => setTempFontSize(value)}
+                  onSlidingComplete={(value) => setFontSize(value)}
+                />
+              </View>
+              
+              <TouchableOpacity style={styles.button} onPress={pickVideo}>
+                <Text style={styles.buttonText}>PILIH VIDEO</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={pickVideo}>
-              <Text style={styles.buttonText}>PILIH VIDEO</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.saveButton} onPress={processVideo}>
-              <Text style={styles.saveButtonText}>SIMPAN KE GALERI</Text>
-            </TouchableOpacity>
-
-            <View style={styles.fontSizeControl}>
-              <Text style={styles.fontSizeText}>
-                Ukuran Font: {tempFontSize}
-              </Text>
-              <Slider
-                style={styles.slider}
-                minimumValue={10}
-                maximumValue={60}
-                step={1}
-                value={fontSize}
-                onValueChange={(value) => setTempFontSize(value)}
-                onSlidingComplete={(value) => setFontSize(value)}
-              />
+              <TouchableOpacity style={styles.saveButton} onPress={processVideo}>
+                <Text style={styles.saveButtonText}>SIMPAN KE GALERI</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -382,67 +525,59 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: wp("2%"),
   },
-  hiddenViewShot: {
-    position: "absolute",
-    top: -9999,
-    left: -9999,
-    backgroundColor: "red",
-    // width diset di inline style
-  },
-  textContainer: {
-    width: "100%",
-    backgroundColor: "red",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 60,
-    overflow: "visible", // Tambah ini biar text ga kepotong
-  },
-  captionText: {
-    color: "white",
-    fontFamily: "RobotoBold",
-    textAlign: "center",
-    width: "100%",
-    //includeFontPadding: false,
-    paddingHorizontal: hp("2%"), // Kurangin padding biar space lebih gede
-  },
   videoContainer: {
     width: wp("90%"),
-    borderWidth: 1,
+    //borderWidth: 1,
     borderColor: "#ccc",
     padding: wp("1%"),
     backgroundColor: "#fff",
     flexDirection: "column",
+    alignItems: "center",
+  },
+  controlsContainer: {
+    width: wp("90%"),
+    alignItems: "center",
+    marginTop: hp("2%"),
   },
   placeholder: {
     width: wp("88%"),
+    height: wp("88%"),
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
   },
-  buttonText: {
-    fontFamily: "RobotoBold",
-    color: "#6A1B9A",
-    fontSize: RFValue(16, 812),
-  },
   placeholderText: {
     fontFamily: "Roboto",
-    fontSize: RFValue(14, 812),
+    fontSize: RFValue(16, 812),
     color: "#666",
+    textAlign: "center",
+  },
+  captionPreview: {
+    backgroundColor: "red",
+    padding: wp("2%"),
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    minHeight: hp("6%"),
+  },
+  captionPreviewText: {
+    fontFamily: "RobotoBold",
+    color: "white",
+    textAlign: "center",
+    paddingHorizontal: wp("2%"),
   },
   caption: {
     fontFamily: "RobotoBold",
-    marginTop: hp("0.5%"),
     padding: wp("2%"),
     backgroundColor: "red",
     color: "white",
-    fontSize: RFValue(12, 812),
-    fontStyle: "normal",
-    //minHeight: hp('10%'), // Ganti maxHeight jadi minHeight
     textAlign: "center",
-    textAlignVertical: "center", // Tambahan untuk alignment vertikal
+    textAlignVertical: "center",
     width: wp("88%"),
-    alignSelf: "center",
+    minHeight: hp("8%"),
+    borderRadius: 5,
+    marginBottom: hp("2%"),
   },
   button: {
     marginTop: hp("2%"),
@@ -452,6 +587,11 @@ const styles = StyleSheet.create({
     borderColor: "#6A1B9A",
     alignItems: "center",
     width: wp("50%"),
+  },
+  buttonText: {
+    fontFamily: "RobotoBold",
+    color: "#6A1B9A",
+    fontSize: RFValue(16, 812),
   },
   saveButton: {
     marginTop: hp("1%"),
@@ -467,10 +607,9 @@ const styles = StyleSheet.create({
     fontSize: RFValue(16, 812),
   },
   fontSizeControl: {
-    marginTop: hp("2%"),
     width: wp("80%"),
     alignItems: "center",
-    paddingHorizontal: 20,
+    marginVertical: hp("1%"),
   },
   fontSizeText: {
     fontFamily: "Roboto",
@@ -498,10 +637,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontSize: RFValue(16, 812),
     color: "#6A1B9A",
-  },
-  video: {
-    width: wp("88%"),
-    alignSelf: "center",
   },
 });
 
