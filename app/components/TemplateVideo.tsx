@@ -460,7 +460,6 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
                 value={captionText}
                 onChangeText={handleTextChange}
                 placeholder="Tuliskan keterangan video di sini..."
-                placeholderTextColor="#ffffff80"
                 multiline={true}
                 textAlignVertical="center"
                 textAlign="center"
@@ -476,7 +475,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
                 </Text>
                 <Slider
                   style={styles.slider}
-                  minimumValue={14}
+                  minimumValue={10}
                   maximumValue={60}
                   step={1}
                   value={fontSize}
@@ -570,13 +569,12 @@ const styles = StyleSheet.create({
   caption: {
     fontFamily: "RobotoBold",
     padding: wp("2%"),
-    backgroundColor: "red",
-    color: "white",
     textAlign: "center",
     textAlignVertical: "center",
     width: wp("88%"),
     minHeight: hp("8%"),
     borderRadius: 5,
+    borderWidth: 1,
     marginBottom: hp("2%"),
   },
   button: {
