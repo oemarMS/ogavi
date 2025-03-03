@@ -34,6 +34,16 @@ interface TemplateImgDualProps {
   needsPermission?: boolean;
 }
 
+// Interface untuk menyimpan informasi format teks
+interface TextSegment {
+  text: string;
+  style: {
+    color: string;
+    fontWeight?: 'normal' | 'bold';
+    fontStyle?: 'normal' | 'italic';
+  };
+}
+
 const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
   aspectRatio,
   title,
@@ -44,12 +54,24 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
     width: number;
     height: number;
   } | null>(null);
+  
   const [rightImage, setRightImage] = useState<{
     uri: string;
     width: number;
     height: number;
   } | null>(null);
+  
+  // State untuk caption utama (versi plain text dan format)
   const [captionText, setCaptionText] = useState("");
+  const [formattedCaption, setFormattedCaption] = useState<TextSegment[]>([
+    { text: "", style: { color: "maroon" } }
+  ]);
+  
+  // State untuk styling caption
+  const [selectedLineIndex, setSelectedLineIndex] = useState(-1);
+  const [currentColor, setCurrentColor] = useState("maroon");
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  
   const [leftCaption, setLeftCaption] = useState("");
   const [rightCaption, setRightCaption] = useState("");
   const [mainFontSize, setMainFontSize] = useState(14);
@@ -61,10 +83,6 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const viewShotRef = useRef<ViewShot>(null);
-
-  const responsiveFontSize = (size: number) => {
-    return RFValue(size, SCREEN_HEIGHT);
-  };
 
   useEffect(() => {
     if (needsPermission) {
@@ -92,8 +110,84 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
     }, 100);
   };
 
+  // Fungsi untuk mengubah teks caption
   const handleTextChange = (text: string) => {
     setCaptionText(text);
+    
+    // Memecah teks berdasarkan baris baru
+    const lines = text.split('\n');
+    
+    // Membuat formattedCaption baru berdasarkan teks yang baru
+    const newFormattedCaption: TextSegment[] = lines.map((line, index) => {
+      // Jika baris ini sudah ada sebelumnya, gunakan style yang sama
+      if (index < formattedCaption.length) {
+        return { ...formattedCaption[index], text: line };
+      }
+      // Jika baris baru, gunakan style default
+      return { text: line, style: { color: "maroon" } };
+    });
+    
+    setFormattedCaption(newFormattedCaption);
+  };
+
+  // Fungsi untuk mengubah warna baris tertentu
+  const setLineColor = (index: number, color: string) => {
+    const newFormattedCaption = [...formattedCaption];
+    if (index >= 0 && index < newFormattedCaption.length) {
+      newFormattedCaption[index] = {
+        ...newFormattedCaption[index],
+        style: { ...newFormattedCaption[index].style, color }
+      };
+      setFormattedCaption(newFormattedCaption);
+    }
+  };
+
+  // Membuat rendered caption menggunakan komponen Text bersarang
+  const renderFormattedCaption = () => {
+    return (
+      <Text style={[styles.captionText, { fontSize: mainFontSize }]}>
+        {formattedCaption.map((segment, index) => (
+          <Text 
+            key={index} 
+            style={segment.style}
+            onPress={() => {
+              setSelectedLineIndex(index);
+              setCurrentColor(segment.style.color);
+              setShowColorPicker(true);
+            }}
+          >
+            {segment.text}
+            {index < formattedCaption.length - 1 ? '\n' : ''}
+          </Text>
+        ))}
+      </Text>
+    );
+  };
+
+  // Komponen pemilih warna sederhana
+  const SimpleColorPicker = () => {
+    const colors = ["black","maroon", "blue", "green", "purple", "orange"];
+    
+    return (
+      <View style={styles.colorPickerContainer}>
+        <Text style={styles.colorPickerTitle}>
+          Pilih warna untuk baris {selectedLineIndex + 1}:
+        </Text>
+        <View style={styles.colorOptions}>
+          {colors.map((color) => (
+            <TouchableOpacity
+              key={color}
+              style={[styles.colorOption, { backgroundColor: color }]}
+              onPress={() => {
+                setCurrentColor(color);
+                setLineColor(selectedLineIndex, color);
+                setShowColorPicker(false);
+              }}
+            />
+          ))}
+        </View>
+      </View>
+    );
   };
 
   const pickImage = async (side: "left" | "right") => {
@@ -105,7 +199,7 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
           : [10, Math.round((1 / aspectRatio) * 10)];
 
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: "images",
         allowsEditing: true,
         aspect: [width, height],
         quality: 1,
@@ -194,27 +288,42 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.inner}>
             <Text style={styles.header}>{title}</Text>
+            
+            {/* Input untuk caption utama */}
+            <View style={styles.captionInputContainer}>
+              <Text style={styles.captionLabel}>Ketikan caption utama:</Text>
+              <TextInput
+                ref={inputRef}
+                style={[styles.captionInput, { fontSize: mainFontSize }]}
+                value={captionText}
+                onChangeText={handleTextChange}
+                placeholder="Tuliskan keterangan utama di sini..."
+                placeholderTextColor="gray"
+                multiline={true}
+                textAlignVertical="center"
+                blurOnSubmit={false}
+                returnKeyType="default"
+                onBlur={() => Keyboard.dismiss()}
+                onFocus={handleFocus}
+              />
+              <Text style={styles.captionInstructions}>
+                Ketuk pada baris caption untuk mengubah warnanya
+              </Text>
+            </View>
+
+            {/* Color picker jika diperlukan */}
+            {showColorPicker && <SimpleColorPicker />}
+            
             <ViewShot
               ref={viewShotRef}
               options={{ format: "jpg", quality: 1 }}
               style={styles.viewShot}
             >
               <View style={styles.dualImageContainer}>
-                <TextInput
-                  ref={inputRef}
-                  style={[styles.caption, { fontSize: mainFontSize }]}
-                  value={captionText}
-                  onChangeText={handleTextChange}
-                  placeholder="Tuliskan keterangan utama di sini..."
-                  placeholderTextColor="maroon"
-                  multiline={true}
-                  textAlignVertical="center"
-                  textAlign="center"
-                  blurOnSubmit={false}
-                  returnKeyType= "default"
-                  onBlur={() => Keyboard.dismiss()}
-                  onFocus={handleFocus}
-                />
+                {/* Rendered formatted caption */}
+                <View style={styles.captionContainer}>
+                  {renderFormattedCaption()}
+                </View>
 
                 <View style={styles.imagesRow}>
                   {/* Left Image Container */}
@@ -237,14 +346,13 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                       value={leftCaption}
                       onChangeText={setLeftCaption}
                       placeholder="Caption kiri..."
-                      placeholderTextColor="maroon"
+                      placeholderTextColor="black"
                       multiline={true}
                       textAlignVertical="center"
                       textAlign="center"
                       blurOnSubmit={true}
                       returnKeyType="default"
                       onBlur={() => Keyboard.dismiss()}
-                      onFocus={handleFocus}
                     />
                   </View>
 
@@ -268,14 +376,13 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                       value={rightCaption}
                       onChangeText={setRightCaption}
                       placeholder="Caption kanan..."
-                      placeholderTextColor="maroon"
+                      placeholderTextColor="black"
                       multiline={true}
                       textAlignVertical="center"
                       textAlign="center"
                       blurOnSubmit={true}
                       returnKeyType="default"
                       onBlur={() => Keyboard.dismiss()}
-                      onFocus={handleFocus}
                     />
                   </View>
                 </View>
@@ -369,6 +476,58 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: wp("2%"),
   },
+  captionInputContainer: {
+    width: wp("95%"),
+    marginBottom: hp("2%"),
+  },
+  captionLabel: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(14, 812),
+    color: "#6A1B9A",
+    marginBottom: hp("1%"),
+  },
+  captionInput: {
+    fontFamily: "Roboto",
+    padding: wp("2%"),
+    backgroundColor: "#f8f8f8",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 4,
+    minHeight: hp("10%"),
+    textAlignVertical: "top",
+  },
+  captionInstructions: {
+    fontFamily: "Roboto",
+    fontSize: RFValue(10, 812),
+    color: "#666",
+    fontStyle: "italic",
+    marginTop: 4,
+  },
+  colorPickerContainer: {
+    width: wp("95%"),
+    padding: wp("3%"),
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    marginBottom: hp("2%"),
+  },
+  colorPickerTitle: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(12, 812),
+    marginBottom: hp("1%"),
+  },
+  colorOptions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+  },
+  colorOption: {
+    width: wp("12%"),
+    height: wp("12%"),
+    borderRadius: wp("6%"),
+    margin: wp("1%"),
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
   viewShot: {
     width: wp("95%"),
   },
@@ -384,6 +543,17 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  captionContainer: {
+    backgroundColor: "white",
+    padding: wp("2%"),
+    width: "100%",
+    marginBottom: hp("1%"),
+    minHeight: hp("5%"),
+  },
+  captionText: {
+    fontFamily: "RobotoBold",
+    textAlign: "center",
+  },
   imagesRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -391,7 +561,7 @@ const styles = StyleSheet.create({
     marginTop: hp("1%"),
   },
   imageWrapper: {
-    width: "48%",
+    width: "49%",
   },
   image: {
     width: "100%",
@@ -434,24 +604,17 @@ const styles = StyleSheet.create({
     fontSize: RFValue(12, 812),
     color: "#666",
   },
-  caption: {
-    fontFamily: "RobotoBold",
-    padding: wp("2%"),
-    backgroundColor: "white",
-    color: "maroon",
-    width: "100%",
-    marginBottom: hp("1%"),
-    minHeight: hp("5%"),
-  },
   imageCaption: {
     fontFamily: "RobotoBold",
     padding: wp("2%"),
     backgroundColor: "white",
-    color: "maroon",
+    color: "black",
     width: "100%",
     marginTop: hp("1%"),
     minHeight: hp("4%"),
     flexGrow: 1,
+    borderWidth: 1,
+    borderColor: "yellow",
   },
   saveButton: {
     backgroundColor: "#6A1B9A",
