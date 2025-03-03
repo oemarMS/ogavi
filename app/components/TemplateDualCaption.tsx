@@ -379,7 +379,7 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
               <Text
                 style={[styles.colorPickerText, { color: captionTextColor }]}
               >
-                UBAH WARNA CAPTION
+                UBAH WARNA BACKGROUND
               </Text>
             </TouchableOpacity>
 
@@ -707,6 +707,7 @@ const styles = StyleSheet.create({
   colorPickerText: {
     fontFamily: "RobotoBold",
     fontSize: RFValue(14, 812),
+    textAlign: "center",
   },
   // Preset colors styles
   presetColorsContainer: {

@@ -349,7 +349,7 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
               <Text
                 style={[styles.colorPickerText, { color: captionTextColor }]}
               >
-                UBAH WARNA CAPTION
+                UBAH WARNA BACKGROUND
               </Text>
             </TouchableOpacity>
 

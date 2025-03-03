@@ -310,7 +310,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
               <Text
                 style={[styles.colorPickerText, { color: captionTextColor }]}
               >
-                UBAH WARNA CAPTION
+                UBAH WARNA BACKGROUND
               </Text>
             </TouchableOpacity>
 
