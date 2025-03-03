@@ -26,7 +26,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import * as Font from "expo-font";
-import ColorPicker from 'react-native-wheel-color-picker';
+import ColorPicker from "react-native-wheel-color-picker";
 
 interface TemplateBaseProps {
   aspectRatio: number;
@@ -38,16 +38,16 @@ interface TemplateBaseProps {
 const getContrastColor = (hexColor: string): string => {
   // Hapus # jika ada
   const color = hexColor.replace("#", "");
-  
+
   // Convert to RGB
   const r = parseInt(color.slice(0, 2), 16);
   const g = parseInt(color.slice(2, 4), 16);
   const b = parseInt(color.slice(4, 6), 16);
-  
+
   // Menghitung kecerahan menggunakan rumus YIQ
   // Formula: (R * 299 + G * 587 + B * 114) / 1000
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  
+
   // Jika brightness > 128, background cenderung terang, gunakan teks gelap
   // Jika brightness <= 128, background cenderung gelap, gunakan teks terang
   return brightness > 128 ? "#000000" : "#ffffff";
@@ -87,7 +87,8 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
       : "landscape"
   );
   // State untuk warna
-  const [captionBackgroundColor, setCaptionBackgroundColor] = useState("#D30000"); // Default merah
+  const [captionBackgroundColor, setCaptionBackgroundColor] =
+    useState("#D30000"); // Default merah
   const [captionTextColor, setCaptionTextColor] = useState("#FFFFFF"); // Default putih
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [currentColor, setCurrentColor] = useState("#D30000");
@@ -299,11 +300,16 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
             </ViewShot>
 
             {/* Color Picker Button */}
-            <TouchableOpacity 
-              style={[styles.colorPickerButton, {backgroundColor: captionBackgroundColor}]} 
+            <TouchableOpacity
+              style={[
+                styles.colorPickerButton,
+                { backgroundColor: captionBackgroundColor },
+              ]}
               onPress={toggleColorPicker}
             >
-              <Text style={[styles.colorPickerText, {color: captionTextColor}]}>
+              <Text
+                style={[styles.colorPickerText, { color: captionTextColor }]}
+              >
                 UBAH WARNA CAPTION
               </Text>
             </TouchableOpacity>
@@ -316,12 +322,13 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
                   <TouchableOpacity
                     key={color}
                     style={[
-                      styles.presetColorItem, 
-                      { 
+                      styles.presetColorItem,
+                      {
                         backgroundColor: color,
                         borderWidth: captionBackgroundColor === color ? 3 : 1,
-                        borderColor: captionBackgroundColor === color ? "#6A1B9A" : "#ddd",
-                      }
+                        borderColor:
+                          captionBackgroundColor === color ? "#6A1B9A" : "#ddd",
+                      },
                     ]}
                     onPress={() => selectPresetColor(color)}
                   />
@@ -364,14 +371,24 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
                 <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
                   <View style={styles.modalContent}>
                     <Text style={styles.modalTitle}>Pilih Warna Caption</Text>
-                    
+
                     {/* Color Preview */}
-                    <View style={[styles.colorSample, { backgroundColor: currentColor }]}>
-                      <Text style={[styles.colorHexCode, { color: getContrastColor(currentColor) }]}>
+                    <View
+                      style={[
+                        styles.colorSample,
+                        { backgroundColor: currentColor },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.colorHexCode,
+                          { color: getContrastColor(currentColor) },
+                        ]}
+                      >
                         {currentColor.toUpperCase()}
                       </Text>
                     </View>
-                    
+
                     {/* Color Wheel */}
                     <View style={styles.colorPickerContainer}>
                       <ColorPicker
@@ -387,27 +404,33 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
                         discrete={false}
                       />
                     </View>
-                    
+
                     {/* Bottom Color Quick Picks */}
                     <View style={styles.quickPickContainer}>
-                      {PRESET_COLORS.slice(0, 5).map(color => (
+                      {PRESET_COLORS.slice(0, 5).map((color) => (
                         <TouchableOpacity
                           key={color}
-                          style={[styles.quickPickItem, { backgroundColor: color }]}
+                          style={[
+                            styles.quickPickItem,
+                            { backgroundColor: color },
+                          ]}
                           onPress={() => onColorChange(color)}
                         />
                       ))}
                     </View>
                     <View style={styles.quickPickContainer}>
-                      {PRESET_COLORS.slice(5, 10).map(color => (
+                      {PRESET_COLORS.slice(5, 10).map((color) => (
                         <TouchableOpacity
                           key={color}
-                          style={[styles.quickPickItem, { backgroundColor: color }]}
+                          style={[
+                            styles.quickPickItem,
+                            { backgroundColor: color },
+                          ]}
                           onPress={() => onColorChange(color)}
                         />
                       ))}
                     </View>
-                    
+
                     {/* Buttons */}
                     <View style={styles.modalButtonContainer}>
                       <TouchableOpacity
@@ -416,7 +439,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
                       >
                         <Text style={styles.cancelButtonText}>BATAL</Text>
                       </TouchableOpacity>
-                      
+
                       <TouchableOpacity
                         style={styles.applyButton}
                         onPress={applyColor}
@@ -583,7 +606,7 @@ const styles = StyleSheet.create({
     height: hp("5%"),
     marginTop: hp("1%"),
   },
-  
+
   // Modal styles - revised to match screenshot
   modalOverlay: {
     flex: 1,

@@ -14,6 +14,7 @@ import {
   Alert,
   ActivityIndicator,
   Dimensions,
+  Modal,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import * as ImagePicker from "expo-image-picker";
@@ -25,6 +26,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import * as Font from "expo-font";
+import ColorPicker from "react-native-wheel-color-picker";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -33,6 +35,37 @@ interface TemplateDualProps {
   title: string;
   needsPermission?: boolean;
 }
+
+// Menentukan warna teks berdasarkan kecerahan background
+const getContrastColor = (hexColor: string): string => {
+  // Hapus # jika ada
+  const color = hexColor.replace("#", "");
+
+  // Convert to RGB
+  const r = parseInt(color.slice(0, 2), 16);
+  const g = parseInt(color.slice(2, 4), 16);
+  const b = parseInt(color.slice(4, 6), 16);
+
+  // Menghitung kecerahan menggunakan rumus YIQ
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+  // Jika brightness > 128, background cenderung terang, gunakan teks gelap
+  return brightness > 128 ? "#000000" : "#ffffff";
+};
+
+// Daftar warna preset untuk quick selection
+const PRESET_COLORS = [
+  "#000000", // Black
+  "#808080", // Gray
+  "#FF0000", // Red
+  "#800080", // Purple
+  "#0000FF", // Blue
+  "#00FFFF", // Cyan
+  "#008000", // Green
+  "#FFFF00", // Yellow
+  "#FFA500", // Orange
+  "#FFFFFF", // White
+];
 
 const TemplateDual: React.FC<TemplateDualProps> = ({
   aspectRatio,
@@ -58,19 +91,29 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
     SCREEN_WIDTH > SCREEN_HEIGHT ? "landscape" : "portrait"
   );
 
+  const [captionBackgroundColor, setCaptionBackgroundColor] =
+    useState("#D30000"); // Default merah
+  const [captionTextColor, setCaptionTextColor] = useState("#FFFFFF"); // Default putih
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [currentColor, setCurrentColor] = useState("#D30000");
+
   // Refs setup
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
   const viewShotRef = useRef<ViewShot>(null);
+  const colorPickerRef = useRef(null);
+
+  // Update text color ketika background color berubah
+  useEffect(() => {
+    setCaptionTextColor(getContrastColor(captionBackgroundColor));
+  }, [captionBackgroundColor]);
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setOrientation(window.width > window.height ? "landscape" : "portrait");
     });
 
-    return () => {
-      subscription?.remove();
-    };
+    return () => subscription?.remove();
   }, []);
 
   useEffect(() => {
@@ -170,6 +213,25 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
     }
   };
 
+  // Handler untuk color picker
+  const onColorChange = (color: string) => {
+    setCurrentColor(color);
+  };
+
+  const applyColor = () => {
+    setCaptionBackgroundColor(currentColor);
+    setShowColorPicker(false);
+  };
+
+  const toggleColorPicker = () => {
+    setCurrentColor(captionBackgroundColor);
+    setShowColorPicker(!showColorPicker);
+  };
+
+  const selectPresetColor = (color: string) => {
+    setCaptionBackgroundColor(color);
+  };
+
   const [fontsLoaded] = Font.useFonts({
     Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
     RobotoBold: require("../../assets/fonts/Roboto-Bold.ttf"),
@@ -254,11 +316,18 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
 
                 <TextInput
                   ref={inputRef}
-                  style={[styles.caption, { fontSize: fontSize }]}
+                  style={[
+                    styles.caption,
+                    {
+                      fontSize: fontSize,
+                      backgroundColor: captionBackgroundColor,
+                      color: captionTextColor,
+                    },
+                  ]}
                   value={captionText}
                   onChangeText={handleTextChange}
                   placeholder="Tuliskan keterangan gambar di sini..."
-                  placeholderTextColor="#ffffff80"
+                  placeholderTextColor={`${captionTextColor}80`} // 50% opacity
                   multiline={true}
                   textAlignVertical="center"
                   textAlign="center"
@@ -268,6 +337,43 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
                 />
               </View>
             </ViewShot>
+
+            {/* Color Picker Button */}
+            <TouchableOpacity
+              style={[
+                styles.colorPickerButton,
+                { backgroundColor: captionBackgroundColor },
+              ]}
+              onPress={toggleColorPicker}
+            >
+              <Text
+                style={[styles.colorPickerText, { color: captionTextColor }]}
+              >
+                UBAH WARNA CAPTION
+              </Text>
+            </TouchableOpacity>
+
+            {/* Quick Select Colors */}
+            <View style={styles.presetColorsContainer}>
+              <Text style={styles.presetColorsTitle}>Warna Cepat:</Text>
+              <View style={styles.presetColorsGrid}>
+                {PRESET_COLORS.map((color) => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[
+                      styles.presetColorItem,
+                      {
+                        backgroundColor: color,
+                        borderWidth: captionBackgroundColor === color ? 3 : 1,
+                        borderColor:
+                          captionBackgroundColor === color ? "#6A1B9A" : "#ddd",
+                      },
+                    ]}
+                    onPress={() => selectPresetColor(color)}
+                  />
+                ))}
+              </View>
+            </View>
 
             <View
               style={[
@@ -314,6 +420,99 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
                 onSlidingComplete={(value) => setFontSize(value)}
               />
             </View>
+
+            {/* Advanced Color Picker Modal */}
+            <Modal
+              visible={showColorPicker}
+              transparent={true}
+              animationType="fade"
+              statusBarTranslucent={true}
+              onRequestClose={() => setShowColorPicker(false)}
+            >
+              <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Pilih Warna Caption</Text>
+
+                    {/* Color Preview */}
+                    <View
+                      style={[
+                        styles.colorSample,
+                        { backgroundColor: currentColor },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.colorHexCode,
+                          { color: getContrastColor(currentColor) },
+                        ]}
+                      >
+                        {currentColor.toUpperCase()}
+                      </Text>
+                    </View>
+
+                    {/* Color Wheel */}
+                    <View style={styles.colorPickerContainer}>
+                      <ColorPicker
+                        ref={colorPickerRef}
+                        color={currentColor}
+                        onColorChange={onColorChange}
+                        thumbSize={30}
+                        sliderSize={30}
+                        noSnap={true}
+                        row={false}
+                        swatchesLast={false}
+                        swatches={false}
+                        discrete={false}
+                      />
+                    </View>
+
+                    {/* Bottom Color Quick Picks */}
+                    <View style={styles.quickPickContainer}>
+                      {PRESET_COLORS.slice(0, 5).map((color) => (
+                        <TouchableOpacity
+                          key={color}
+                          style={[
+                            styles.quickPickItem,
+                            { backgroundColor: color },
+                          ]}
+                          onPress={() => onColorChange(color)}
+                        />
+                      ))}
+                    </View>
+                    <View style={styles.quickPickContainer}>
+                      {PRESET_COLORS.slice(5, 10).map((color) => (
+                        <TouchableOpacity
+                          key={color}
+                          style={[
+                            styles.quickPickItem,
+                            { backgroundColor: color },
+                          ]}
+                          onPress={() => onColorChange(color)}
+                        />
+                      ))}
+                    </View>
+
+                    {/* Buttons */}
+                    <View style={styles.modalButtonContainer}>
+                      <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => setShowColorPicker(false)}
+                      >
+                        <Text style={styles.cancelButtonText}>BATAL</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.applyButton}
+                        onPress={applyColor}
+                      >
+                        <Text style={styles.applyButtonText}>TERAPKAN</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            </Modal>
           </View>
         </TouchableWithoutFeedback>
       </ScrollView>
@@ -416,8 +615,6 @@ const styles = StyleSheet.create({
     fontFamily: "RobotoBold",
     marginTop: hp("0.5%"),
     padding: wp("2%"),
-    backgroundColor: "red",
-    color: "white",
     fontStyle: "normal",
     maxHeight: hp("20%"),
     minHeight: hp("5%"),
@@ -475,6 +672,136 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto",
     fontSize: RFValue(16, 812),
     color: "#6A1B9A",
+  },
+  // Color picker button styles
+  colorPickerButton: {
+    marginTop: hp("2%"),
+    padding: wp("3%"),
+    borderRadius: 100,
+    alignItems: "center",
+    width: wp("60%"),
+    maxWidth: 300,
+    minHeight: hp("6%"),
+    justifyContent: "center",
+  },
+  colorPickerText: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(14, 812),
+  },
+  // Preset colors styles
+  presetColorsContainer: {
+    width: wp("90%"),
+    maxWidth: 600,
+    marginTop: hp("1%"),
+    alignItems: "center",
+  },
+  presetColorsTitle: {
+    fontFamily: "Roboto",
+    fontSize: RFValue(14, 812),
+    marginBottom: hp("0.5%"),
+  },
+  presetColorsGrid: {
+    flexDirection: "row",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    marginBottom: hp("1%"),
+  },
+  presetColorItem: {
+    width: wp("8%"),
+    height: wp("8%"),
+    borderRadius: wp("4%"),
+    margin: wp("1%"),
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalContent: {
+    width: wp("85%"),
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: wp("5%"),
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  modalTitle: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(18, 812),
+    color: "#6A1B9A",
+    marginBottom: hp("1.5%"),
+  },
+  colorSample: {
+    width: wp("40%"),
+    height: hp("4%"),
+    borderRadius: 10,
+    marginBottom: hp("2%"),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  colorHexCode: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(14, 812),
+  },
+  colorPickerContainer: {
+    width: wp("70%"),
+    height: hp("26%"),
+    marginBottom: hp("6%"),
+  },
+  quickPickContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginBottom: hp("1%"),
+  },
+  quickPickItem: {
+    width: wp("8%"),
+    height: wp("8%"),
+    borderRadius: wp("4%"),
+    borderWidth: 1,
+    borderColor: "#ddd",
+    margin: 2,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: hp("1%"),
+  },
+  cancelButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#6A1B9A",
+    borderRadius: 50,
+    padding: hp("1.5%"),
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: wp("2%"),
+  },
+  cancelButtonText: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(16, 812),
+    color: "#6A1B9A",
+  },
+  applyButton: {
+    flex: 1,
+    backgroundColor: "#6A1B9A",
+    borderRadius: 50,
+    padding: hp("1.5%"),
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: wp("2%"),
+  },
+  applyButtonText: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(16, 812),
+    color: "#FFFFFF",
   },
 });
 
