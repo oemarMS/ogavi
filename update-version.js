@@ -38,7 +38,7 @@ appJson.expo.version = newVersion;
 if (appJson.expo.android && appJson.expo.android.versionCode) {
   appJson.expo.android.versionCode += 1;
 } else if (appJson.expo.android) {
-  appJson.expo.android.versionCode = 3; // Asumsi versi sebelumnya 2
+  appJson.expo.android.versionCode = 7; // Asumsi versi sebelumnya 6
 }
 
 fs.writeFileSync(appPath, JSON.stringify(appJson, null, 2));
