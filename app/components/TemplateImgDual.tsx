@@ -39,6 +39,7 @@ interface TextSegment {
   text: string;
   style: {
     color: string;
+    fontSize?: number;  // Tambah property untuk ukuran font
     fontWeight?: 'normal' | 'bold';
     fontStyle?: 'normal' | 'italic';
   };
@@ -64,13 +65,16 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
   // State untuk caption utama (versi plain text dan format)
   const [captionText, setCaptionText] = useState("");
   const [formattedCaption, setFormattedCaption] = useState<TextSegment[]>([
-    { text: "", style: { color: "maroon" } }
+    { text: "", style: { color: "maroon", fontSize: 14 } }
   ]);
   
   // State untuk styling caption
   const [selectedLineIndex, setSelectedLineIndex] = useState(-1);
   const [currentColor, setCurrentColor] = useState("maroon");
+  const [currentFontSize, setCurrentFontSize] = useState(14);
+  const [showFormatMenu, setShowFormatMenu] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showFontSizePicker, setShowFontSizePicker] = useState(false);
   
   const [leftCaption, setLeftCaption] = useState("");
   const [rightCaption, setRightCaption] = useState("");
@@ -124,7 +128,7 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
         return { ...formattedCaption[index], text: line };
       }
       // Jika baris baru, gunakan style default
-      return { text: line, style: { color: "maroon" } };
+      return { text: line, style: { color: "maroon", fontSize: mainFontSize } };
     });
     
     setFormattedCaption(newFormattedCaption);
@@ -141,11 +145,23 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
       setFormattedCaption(newFormattedCaption);
     }
   };
+  
+  // Fungsi untuk mengubah ukuran font baris tertentu
+  const setLineFontSize = (index: number, fontSize: number) => {
+    const newFormattedCaption = [...formattedCaption];
+    if (index >= 0 && index < newFormattedCaption.length) {
+      newFormattedCaption[index] = {
+        ...newFormattedCaption[index],
+        style: { ...newFormattedCaption[index].style, fontSize }
+      };
+      setFormattedCaption(newFormattedCaption);
+    }
+  };
 
   // Membuat rendered caption menggunakan komponen Text bersarang
   const renderFormattedCaption = () => {
     return (
-      <Text style={[styles.captionText, { fontSize: mainFontSize }]}>
+      <Text style={styles.captionText}>
         {formattedCaption.map((segment, index) => (
           <Text 
             key={index} 
@@ -153,7 +169,8 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
             onPress={() => {
               setSelectedLineIndex(index);
               setCurrentColor(segment.style.color);
-              setShowColorPicker(true);
+              setCurrentFontSize(segment.style.fontSize || mainFontSize);
+              setShowFormatMenu(true);
             }}
           >
             {segment.text}
@@ -164,9 +181,52 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
     );
   };
 
+  // Komponen menu format untuk baris terpilih
+  const FormatMenu = () => {
+    return (
+      <View style={styles.formatMenuContainer}>
+        <Text style={styles.formatMenuTitle}>
+          Format baris {selectedLineIndex + 1}:
+        </Text>
+        <View style={styles.formatOptions}>
+          <TouchableOpacity
+            style={styles.formatButton}
+            onPress={() => {
+              setShowColorPicker(true);
+              setShowFontSizePicker(false);
+            }}
+          >
+            <Text style={styles.formatButtonText}>Ubah Warna</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.formatButton}
+            onPress={() => {
+              setShowFontSizePicker(true);
+              setShowColorPicker(false);
+            }}
+          >
+            <Text style={styles.formatButtonText}>Ubah Ukuran Font</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => {
+              setShowFormatMenu(false);
+              setShowColorPicker(false);
+              setShowFontSizePicker(false);
+            }}
+          >
+            <Text style={styles.closeButtonText}>Tutup</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   // Komponen pemilih warna sederhana
   const SimpleColorPicker = () => {
-    const colors = ["black","maroon", "blue", "green", "purple", "orange"];
+    const colors = ["maroon", "blue", "green", "purple", "orange", "black"];
     
     return (
       <View style={styles.colorPickerContainer}>
@@ -189,6 +249,59 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
       </View>
     );
   };
+  
+  // Komponen pemilih ukuran font
+  const FontSizePicker = () => {
+    const [tempSize, setTempSize] = useState(currentFontSize);
+    const [previewSize, setPreviewSize] = useState(currentFontSize);
+    
+    return (
+      <View style={styles.fontSizePickerContainer}>
+        <Text style={styles.fontSizePickerTitle}>
+          Ukuran font untuk baris {selectedLineIndex + 1}: {Math.round(previewSize)}
+        </Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={10}
+          maximumValue={60}
+          step={1}
+          value={tempSize}
+          onValueChange={(value) => {
+            // Hanya update nilai preview, tidak mengubah text asli
+            setPreviewSize(value);
+          }}
+          onSlidingComplete={(value) => {
+            // Update nilai sebenarnya saat slider selesai
+            setTempSize(value);
+            setPreviewSize(value);
+          }}
+        />
+        <View style={styles.fontSizeButtonsContainer}>
+          <TouchableOpacity
+            style={styles.applyButton}
+            onPress={() => {
+              // Terapkan perubahan hanya saat tombol Apply ditekan
+              setCurrentFontSize(tempSize);
+              setLineFontSize(selectedLineIndex, tempSize);
+              setShowFontSizePicker(false);
+            }}
+          >
+            <Text style={styles.applyButtonText}>Terapkan</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => {
+              // Batalkan perubahan
+              setShowFontSizePicker(false);
+            }}
+          >
+            <Text style={styles.cancelButtonText}>Batal</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   const pickImage = async (side: "left" | "right") => {
     setIsLoading(true);
@@ -199,7 +312,7 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
           : [10, Math.round((1 / aspectRatio) * 10)];
 
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: "images",
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [width, height],
         quality: 1,
@@ -311,8 +424,10 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
               </Text>
             </View>
 
-            {/* Color picker jika diperlukan */}
+            {/* Menu formatting untuk baris */}
+            {showFormatMenu && <FormatMenu />}
             {showColorPicker && <SimpleColorPicker />}
+            {showFontSizePicker && <FontSizePicker />}
             
             <ViewShot
               ref={viewShotRef}
@@ -413,22 +528,6 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                 <Text style={styles.saveButtonText}>SIMPAN KE GALERI</Text>
               </TouchableOpacity>
 
-              <View style={styles.fontSizeControl}>
-                <View style={styles.sliderContainer}>
-                  <Text style={styles.fontSizeText}>
-                    Ukuran Font Caption Utama: {tempMainFontSize}
-                  </Text>
-                  <Slider
-                    style={styles.slider}
-                    minimumValue={10}
-                    maximumValue={60}
-                    step={1}
-                    value={mainFontSize}
-                    onValueChange={setTempMainFontSize}
-                    onSlidingComplete={setMainFontSize}
-                  />
-                </View>
-
                 <View style={styles.sliderContainer}>
                   <Text style={styles.fontSizeText}>
                     Ukuran Font Caption Gambar: {tempImageFontSize}
@@ -443,7 +542,6 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                     onSlidingComplete={setImageFontSize}
                   />
                 </View>
-              </View>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -503,6 +601,46 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: 4,
   },
+  formatMenuContainer: {
+    width: wp("95%"),
+    padding: wp("3%"),
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    marginBottom: hp("2%"),
+  },
+  formatMenuTitle: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(14, 812),
+    marginBottom: hp("1%"),
+    color: "#333",
+  },
+  formatOptions: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: hp("1%"),
+  },
+  formatButton: {
+    backgroundColor: "#6A1B9A",
+    paddingVertical: hp("1%"),
+    paddingHorizontal: wp("4%"),
+    borderRadius: 20,
+  },
+  formatButtonText: {
+    fontFamily: "RobotoBold",
+    color: "white",
+    fontSize: RFValue(12, 812),
+  },
+  closeButton: {
+    backgroundColor: "#999",
+    paddingVertical: hp("1%"),
+    paddingHorizontal: wp("4%"),
+    borderRadius: 20,
+  },
+  closeButtonText: {
+    fontFamily: "RobotoBold",
+    color: "white",
+    fontSize: RFValue(12, 812),
+  },
   colorPickerContainer: {
     width: wp("95%"),
     padding: wp("3%"),
@@ -527,6 +665,47 @@ const styles = StyleSheet.create({
     margin: wp("1%"),
     borderWidth: 1,
     borderColor: "#ddd",
+  },
+  fontSizePickerContainer: {
+    width: wp("95%"),
+    padding: wp("3%"),
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    marginBottom: hp("2%"),
+  },
+  fontSizePickerTitle: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(12, 812),
+    marginBottom: hp("1%"),
+  },
+  fontSizeButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  applyButton: {
+    backgroundColor: "#6A1B9A",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  applyButtonText: {
+    fontFamily: "RobotoBold",
+    color: "white",
+    fontSize: RFValue(12, 812),
+  },
+  cancelButton: {
+    backgroundColor: "#999",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  cancelButtonText: {
+    fontFamily: "RobotoBold",
+    color: "white",
+    fontSize: RFValue(12, 812),
   },
   viewShot: {
     width: wp("95%"),
@@ -561,7 +740,7 @@ const styles = StyleSheet.create({
     marginTop: hp("1%"),
   },
   imageWrapper: {
-    width: "49%",
+    width: "48%",
   },
   image: {
     width: "100%",
@@ -613,8 +792,6 @@ const styles = StyleSheet.create({
     marginTop: hp("1%"),
     minHeight: hp("4%"),
     flexGrow: 1,
-    borderWidth: 1,
-    borderColor: "yellow",
   },
   saveButton: {
     backgroundColor: "#6A1B9A",
