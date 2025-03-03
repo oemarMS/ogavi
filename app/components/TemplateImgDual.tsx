@@ -420,7 +420,7 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                 onFocus={handleFocus}
               />
               <Text style={styles.captionInstructions}>
-                Ketuk pada baris caption untuk mengubah warnanya
+              Ketuk pada baris caption untuk mengubah warnanya/ukuran font
               </Text>
             </View>
 
@@ -792,6 +792,8 @@ const styles = StyleSheet.create({
     marginTop: hp("1%"),
     minHeight: hp("4%"),
     flexGrow: 1,
+    borderWidth: 1,
+    borderColor: "yellow",
   },
   saveButton: {
     backgroundColor: "#6A1B9A",
