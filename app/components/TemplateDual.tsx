@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
   fontSizeControl: {
     marginTop: hp("2%"),
     width: wp("80%"),
-    maxWidth: 500,
+    maxWidth: wp("80%"),
     alignItems: "center",
     paddingHorizontal: wp("5%"),
   },
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
     borderRadius: wp("4%"),
     borderWidth: 1,
     borderColor: "#ddd",
-    margin: 2,
+    margin: "1%",
   },
   modalButtonContainer: {
     flexDirection: "row",

@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: "center",
     width: wp("50%"),
-    maxWidth: 300,
+    maxWidth: wp("100%"),
     minHeight: hp("6%"),
     justifyContent: "center",
   },
@@ -700,7 +700,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: "center",
     width: wp("60%"),
-    maxWidth: 300,
+    maxWidth: wp("100%"),
     minHeight: hp("6%"),
     justifyContent: "center",
   },
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
   // Preset colors styles
   presetColorsContainer: {
     width: wp("90%"),
-    maxWidth: 600,
+    maxWidth: wp("100%"),
     marginTop: hp("1%"),
     alignItems: "center",
   },
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
     borderRadius: wp("4%"),
     borderWidth: 1,
     borderColor: "#ddd",
-    margin: 2,
+    margin: "1%",
   },
   modalButtonContainer: {
     flexDirection: "row",

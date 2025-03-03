@@ -526,10 +526,10 @@ const styles = StyleSheet.create({
   colorPickerButton: {
     marginTop: hp("2%"),
     padding: wp("3%"),
-    borderRadius: 100,
+    borderRadius: wp("100%"),
     alignItems: "center",
     width: wp("60%"),
-    maxWidth: 300,
+    maxWidth: wp("100%"),
     minHeight: hp("6%"),
     justifyContent: "center",
   },
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
   // Preset colors styles
   presetColorsContainer: {
     width: wp("90%"),
-    maxWidth: 600,
+    maxWidth: wp("100%"),
     marginTop: hp("1%"),
     alignItems: "center",
   },
@@ -565,12 +565,12 @@ const styles = StyleSheet.create({
   button: {
     marginTop: hp("2%"),
     padding: wp("3%"),
-    borderRadius: 100,
+    borderRadius: wp("100%"),
     borderWidth: 1,
     borderColor: "#6A1B9A",
     alignItems: "center",
     width: wp("50%"),
-    maxWidth: 300,
+    maxWidth: wp("100%"),
     minHeight: hp("6%"),
     justifyContent: "center",
   },
@@ -578,10 +578,10 @@ const styles = StyleSheet.create({
     marginTop: hp("1%"),
     backgroundColor: "#6A1B9A",
     padding: wp("3%"),
-    borderRadius: 100,
+    borderRadius: wp("100%"),
     alignItems: "center",
     width: wp("50%"),
-    maxWidth: 300,
+    maxWidth: wp("100%"),
     minHeight: hp("6%"),
     justifyContent: "center",
   },
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
   fontSizeControl: {
     marginTop: hp("2%"),
     width: wp("80%"),
-    maxWidth: 500,
+    maxWidth: wp("100%"),
     alignItems: "center",
     paddingHorizontal: wp("5%"),
   },
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     fontSize: RFValue(16, 812),
   },
   slider: {
-    width: "100%",
+    width: wp("80%"),
     height: hp("5%"),
     marginTop: hp("1%"),
   },
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
   quickPickContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    width: "100%",
+    width: wp("75%"),
     marginBottom: hp("1%"),
   },
   quickPickItem: {
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     borderRadius: wp("4%"),
     borderWidth: 1,
     borderColor: "#ddd",
-    margin: 2,
+    margin: "1%",
   },
   modalButtonContainer: {
     flexDirection: "row",
