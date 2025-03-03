@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ogavi",
     "slug": "Ogavi",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/appicononly.png",
     "scheme": "myapp",
@@ -22,7 +22,8 @@
         "foregroundImage": "./assets/images/appicononly.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.oemarms.Ogavi"
+      "package": "com.oemarms.Ogavi",
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
