@@ -1,5 +1,3 @@
-// Perbaikan style dan posisi modal untuk Color Picker
-
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -42,9 +40,9 @@ const getContrastColor = (hexColor: string): string => {
   const color = hexColor.replace("#", "");
   
   // Convert to RGB
-  const r = parseInt(color.substr(0, 2), 16);
-  const g = parseInt(color.substr(2, 2), 16);
-  const b = parseInt(color.substr(4, 2), 16);
+  const r = parseInt(color.slice(0, 2), 16);
+  const g = parseInt(color.slice(2, 4), 16);
+  const b = parseInt(color.slice(4, 6), 16);
   
   // Menghitung kecerahan menggunakan rumus YIQ
   // Formula: (R * 299 + G * 587 + B * 114) / 1000
@@ -55,16 +53,17 @@ const getContrastColor = (hexColor: string): string => {
   return brightness > 128 ? "#000000" : "#ffffff";
 };
 
-// Daftar warna preset untuk quick selection (lebih sedikit agar muat dalam 1 baris)
+// Daftar warna preset untuk quick selection
 const PRESET_COLORS = [
-  "#FF0000", // Red
-  "#FFA500", // Orange
-  "#FFFF00", // Yellow 
-  "#008000", // Green
-  "#0000FF", // Blue
-  "#800080", // Purple
-  "#FF00FF", // Magenta
   "#000000", // Black
+  "#808080", // Gray
+  "#FF0000", // Red
+  "#800080", // Purple
+  "#0000FF", // Blue
+  "#00FFFF", // Cyan
+  "#008000", // Green
+  "#FFFF00", // Yellow
+  "#FFA500", // Orange
   "#FFFFFF", // White
 ];
 
@@ -88,8 +87,8 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
       : "landscape"
   );
   // State untuk warna
-  const [captionBackgroundColor, setCaptionBackgroundColor] = useState("#D30000"); // Red color default
-  const [captionTextColor, setCaptionTextColor] = useState("#FFFFFF"); // Default text putih
+  const [captionBackgroundColor, setCaptionBackgroundColor] = useState("#D30000"); // Default merah
+  const [captionTextColor, setCaptionTextColor] = useState("#FFFFFF"); // Default putih
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [currentColor, setCurrentColor] = useState("#D30000");
 
@@ -311,7 +310,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
 
             {/* Quick Select Colors */}
             <View style={styles.presetColorsContainer}>
-              <Text style={styles.presetColorsTitle}>Warna Favorit:</Text>
+              <Text style={styles.presetColorsTitle}>Warna Cepat:</Text>
               <View style={styles.presetColorsGrid}>
                 {PRESET_COLORS.map((color) => (
                   <TouchableOpacity
@@ -353,7 +352,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
               />
             </View>
 
-            {/* Advanced Color Picker Modal - Posisi diredesign */}
+            {/* Advanced Color Picker Modal */}
             <Modal
               visible={showColorPicker}
               transparent={true}
@@ -361,56 +360,73 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
               statusBarTranslucent={true}
               onRequestClose={() => setShowColorPicker(false)}
             >
-              <TouchableWithoutFeedback onPress={() => setShowColorPicker(false)}>
-                <View style={styles.modalOverlay}>
-                  <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-                    <View style={styles.modalContent}>
-                      <Text style={styles.modalTitle}>Pilih Warna Caption</Text>
-                      
-                      <View style={styles.colorPreview}>
-                        <View style={[styles.colorSample, { backgroundColor: currentColor }]}>
-                          <Text style={{ 
-                            color: getContrastColor(currentColor), 
-                            textAlign: 'center',
-                            fontFamily: 'Roboto',
-                            fontSize: 14
-                          }}>
-                            {currentColor.toUpperCase()}
-                          </Text>
-                        </View>
-                      </View>
-                      
-                      <View style={styles.colorPickerContainer}>
-                        <ColorPicker
-                          ref={colorPickerRef}
-                          color={currentColor}
-                          onColorChange={onColorChange}
-                          thumbSize={30}
-                          sliderSize={30}
-                          noSnap={true}
-                          row={false}
-                        />
-                      </View>
-                      
-                      <View style={styles.modalButtons}>
-                        <TouchableOpacity 
-                          style={[styles.modalButton, styles.cancelButton]} 
-                          onPress={() => setShowColorPicker(false)}
-                        >
-                          <Text style={styles.cancelButtonText}>BATAL</Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity 
-                          style={[styles.modalButton, styles.applyButton]} 
-                          onPress={applyColor}
-                        >
-                          <Text style={styles.applyButtonText}>TERAPKAN</Text>
-                        </TouchableOpacity>
-                      </View>
+              <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Pilih Warna Caption</Text>
+                    
+                    {/* Color Preview */}
+                    <View style={[styles.colorSample, { backgroundColor: currentColor }]}>
+                      <Text style={[styles.colorHexCode, { color: getContrastColor(currentColor) }]}>
+                        {currentColor.toUpperCase()}
+                      </Text>
                     </View>
-                  </TouchableWithoutFeedback>
-                </View>
-              </TouchableWithoutFeedback>
+                    
+                    {/* Color Wheel */}
+                    <View style={styles.colorPickerContainer}>
+                      <ColorPicker
+                        ref={colorPickerRef}
+                        color={currentColor}
+                        onColorChange={onColorChange}
+                        thumbSize={30}
+                        sliderSize={30}
+                        noSnap={true}
+                        row={false}
+                        swatchesLast={false}
+                        swatches={false}
+                        discrete={false}
+                      />
+                    </View>
+                    
+                    {/* Bottom Color Quick Picks */}
+                    <View style={styles.quickPickContainer}>
+                      {PRESET_COLORS.slice(0, 5).map(color => (
+                        <TouchableOpacity
+                          key={color}
+                          style={[styles.quickPickItem, { backgroundColor: color }]}
+                          onPress={() => onColorChange(color)}
+                        />
+                      ))}
+                    </View>
+                    <View style={styles.quickPickContainer}>
+                      {PRESET_COLORS.slice(5, 10).map(color => (
+                        <TouchableOpacity
+                          key={color}
+                          style={[styles.quickPickItem, { backgroundColor: color }]}
+                          onPress={() => onColorChange(color)}
+                        />
+                      ))}
+                    </View>
+                    
+                    {/* Buttons */}
+                    <View style={styles.modalButtonContainer}>
+                      <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => setShowColorPicker(false)}
+                      >
+                        <Text style={styles.cancelButtonText}>BATAL</Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity
+                        style={styles.applyButton}
+                        onPress={applyColor}
+                      >
+                        <Text style={styles.applyButtonText}>TERAPKAN</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
             </Modal>
           </View>
         </TouchableWithoutFeedback>
@@ -567,80 +583,97 @@ const styles = StyleSheet.create({
     height: hp("5%"),
     marginTop: hp("1%"),
   },
-  // Advanced color picker modal - FIXED POSITION
+  
+  // Modal styles - revised to match screenshot
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.7)",
-    paddingHorizontal: wp("5%"),
   },
   modalContent: {
     width: wp("85%"),
-    maxHeight: hp("70%"), // Lebih kecil agar tidak memakan layar
-    backgroundColor: "white",
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: wp("5%"),
     alignItems: "center",
+    elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 4,
   },
   modalTitle: {
     fontFamily: "RobotoBold",
     fontSize: RFValue(18, 812),
-    marginBottom: hp("1.5%"),
     color: "#6A1B9A",
-  },
-  colorPreview: {
-    width: "100%",
-    alignItems: "center",
     marginBottom: hp("1.5%"),
   },
   colorSample: {
-    width: wp("30%"),
+    width: wp("40%"),
     height: hp("4%"),
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    justifyContent: "center",
+    borderRadius: 10,
+    marginBottom: hp("2%"),
     alignItems: "center",
+    justifyContent: "center",
+  },
+  colorHexCode: {
+    fontFamily: "RobotoBold",
+    fontSize: RFValue(14, 812),
   },
   colorPickerContainer: {
-    width: "100%",
-    height: hp("25%"), // Ukuran yang lebih kecil
-    marginBottom: hp("1.5%"),
+    width: wp("70%"),
+    height: hp("26%"),
+    marginBottom: hp("6%"),
   },
-  modalButtons: {
+  quickPickContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginBottom: hp("1%"),
+  },
+  quickPickItem: {
+    width: wp("8%"),
+    height: wp("8%"),
+    borderRadius: wp("4%"),
+    borderWidth: 1,
+    borderColor: "#ddd",
+    margin: 2,
+  },
+  modalButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-  },
-  modalButton: {
-    padding: wp("2.5%"),
-    borderRadius: 100,
-    alignItems: "center",
-    width: "45%", 
-    justifyContent: "center",
+    marginTop: hp("1%"),
   },
   cancelButton: {
+    flex: 1,
     borderWidth: 1,
     borderColor: "#6A1B9A",
+    borderRadius: 50,
+    padding: hp("1.5%"),
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: wp("2%"),
   },
   cancelButtonText: {
     fontFamily: "RobotoBold",
-    fontSize: RFValue(14, 812),
+    fontSize: RFValue(16, 812),
     color: "#6A1B9A",
   },
   applyButton: {
+    flex: 1,
     backgroundColor: "#6A1B9A",
+    borderRadius: 50,
+    padding: hp("1.5%"),
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: wp("2%"),
   },
   applyButtonText: {
     fontFamily: "RobotoBold",
-    fontSize: RFValue(14, 812),
-    color: "white",
+    fontSize: RFValue(16, 812),
+    color: "#FFFFFF",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
