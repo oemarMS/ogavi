@@ -115,7 +115,7 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
           : [10, Math.round((1 / aspectRatio) * 10)];
 
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: "images",
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [width, height],
         quality: 1,
