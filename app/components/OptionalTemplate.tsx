@@ -38,50 +38,58 @@ interface ImageState {
 
 /**
  * Komponen Optional Template
- * 
- * Komponen ini memvisualisasikan pembuatan infografis 
+ *
+ * Komponen ini memvisualisasikan pembuatan infografis
  * dengan kemampuan memilih gambar dari galeri dan mengubah semua teks secara dinamis
  */
 const OptionalTemplate: React.FC<OptionalTemplateProps> = ({ navigation }) => {
   const viewShotRef = useRef<ViewShot>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  
+
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // State untuk gambar-gambar
   const [logoOptional, setLogoOptional] = useState<ImageState | null>(null);
   const [optionalImage1, setOptionalImage1] = useState<ImageState | null>(null);
   const [optionalImage2, setOptionalImage2] = useState<ImageState | null>(null);
   const [optionalImage3, setOptionalImage3] = useState<ImageState | null>(null);
   const [optionalImage4, setOptionalImage4] = useState<ImageState | null>(null);
-  
+
   // State untuk teks-teks yang bisa diedit
-const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECTETUER ADIPISCING ELIT. DAPIBUS SEMPER DUIS MAGNIS ET HABITANT. CLASS EGET ADIPISCING SED CONUBIA CURAE.");
-  const [updateText, setUpdateText] = useState("UPDATE XX MAR 2025, PKL 18.00 WIB");
-  
+  const [headerTitle1, setHeaderTitle1] = useState(
+    "LOREM IPSUM ODOR AMET, CONSECTETUER ADIPISCING ELIT. DAPIBUS SEMPER DUIS MAGNIS ET HABITANT. CLASS EGET ADIPISCING SED CONUBIA CURAE."
+  );
+  const [updateText, setUpdateText] = useState(
+    "UPDATE XX MAR 2025, PKL 18.00 WIB"
+  );
+
   // State untuk section EXSUM
   const [exsumText, setExsumText] = useState(
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
   );
-  
+
   // State untuk section 2
-  const [sec2Title1, setSec2Title1] = useState("AKSI UNJUK RASA (AUR) OLEH XXXXXXXXX DENGAN TEMA XXXXX DI XXXXX");
+  const [sec2Title1, setSec2Title1] = useState(
+    "AKSI UNJUK RASA (AUR) OLEH XXXXXXXXX DENGAN TEMA XXXXX DI XXXXX"
+  );
   const [sec2Text, setSec2Text] = useState(
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
   );
-  
+
   // State untuk section 3
   const [sec3Title, setsec3Title] = useState("PATROLI SIBER");
   const [sec3Text, setsec3Text] = useState(
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
   );
-  
+
   // State untuk section 4
-  const [sec4Title1, setsec4Title1] = useState("UPAYA ABUSE REPORT SITUS BLOG TERKAIT AKSI INDONESIA GELAP");
+  const [sec4Title1, setsec4Title1] = useState(
+    "UPAYA ABUSE REPORT SITUS BLOG TERKAIT AKSI INDONESIA GELAP"
+  );
   const [sec4Text, setsec4Text] = useState(
     "Pada 3 Maret 2025, Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
   );
-  
+
   // State untuk section Langkah Tindak
   const [langkahTitle, setLangkahTitle] = useState("LANGKAH TINDAK");
   const [langkahText1, setLangkahText1] = useState(
@@ -93,7 +101,7 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
   const [langkahText3, setLangkahText3] = useState(
     "3. Lorem ipsum odor amet, consectetuer adipiscing elit. Dapibus semper duis magnis et habitant. Class eget adipiscing sed conubia curae."
   );
-  
+
   // State untuk footer
   const [footerText, setFooterText] = useState("Merpati-08");
 
@@ -140,14 +148,14 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
         );
         return;
       }
-      
+
       // Dismiss keyboard before capture
       Keyboard.dismiss();
-      
+
       // Wait a bit for keyboard to fully dismiss
       setTimeout(async () => {
         setIsLoading(true);
-        
+
         if (viewShotRef.current && viewShotRef.current.capture) {
           const uri = await viewShotRef.current.capture();
           await MediaLibrary.saveToLibraryAsync(uri);
@@ -168,12 +176,12 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
   const handleFocus = (y: number) => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({
-        y: y - hp("10%"), 
-        animated: true
+        y: y - hp("10%"),
+        animated: true,
       });
     }
   };
-  
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -181,15 +189,15 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
       keyboardVerticalOffset={Platform.OS === "ios" ? hp("2%") : 0}
     >
       <StatusBar style="light" />
-      
+
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#F3D270" />
         </View>
       )}
-      
+
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView 
+        <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
@@ -201,9 +209,11 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
           >
             {/* Header Section */}
             <View style={styles.headerContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.logoContainer}
-                onPress={() => pickImage(setLogoOptional, "Pilih Logo Optional")}
+                onPress={() =>
+                  pickImage(setLogoOptional, "Pilih Logo Optional")
+                }
               >
                 {logoOptional ? (
                   <Image
@@ -269,9 +279,9 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
                   />
                 </View>
               </View>
-              
+
               <View style={styles.optImage1Container}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.imagePickerContainer}
                   onPress={() => pickImage(setOptionalImage1, "opt Gambar 1")}
                 >
@@ -288,7 +298,7 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
                     </View>
                   )}
                 </TouchableOpacity>
-                
+
                 <TextInput
                   style={styles.sec2TextInput}
                   value={sec2Text}
@@ -296,8 +306,8 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
                   multiline={true}
                   onFocus={() => handleFocus(500)}
                 />
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.imagePickerContainer}
                   onPress={() => pickImage(setOptionalImage2, "opt Gambar 2")}
                 >
@@ -331,7 +341,7 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
                   onFocus={() => handleFocus(700)}
                 />
               </View>
-              
+
               <View style={styles.sec3Container}>
                 <View style={styles.sec3TextContainer}>
                   <TextInput
@@ -342,7 +352,7 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
                     onFocus={() => handleFocus(750)}
                   />
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.sec3ImageContainer}
                   onPress={() => pickImage(setOptionalImage3, "Gambar Sec 3")}
                 >
@@ -353,7 +363,9 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
                       resizeMode="contain"
                     />
                   ) : (
-                    <View style={[styles.imagePlaceholder, styles.optionalImage3]}>
+                    <View
+                      style={[styles.imagePlaceholder, styles.optionalImage3]}
+                    >
                       <Text style={styles.placeholderText}>Sec 3</Text>
                       <Text style={styles.tapText}>Ketuk</Text>
                     </View>
@@ -378,9 +390,9 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
                   />
                 </View>
               </View>
-              
+
               <View style={styles.sec4Container}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.sec4ImageContainer}
                   onPress={() => pickImage(setOptionalImage4, "Gambar Sec 4")}
                 >
@@ -391,7 +403,9 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
                       resizeMode="contain"
                     />
                   ) : (
-                    <View style={[styles.imagePlaceholder, styles.optionalImage4]}>
+                    <View
+                      style={[styles.imagePlaceholder, styles.optionalImage4]}
+                    >
                       <Text style={styles.placeholderText}>Sec 4</Text>
                       <Text style={styles.tapText}>Ketuk</Text>
                     </View>
@@ -423,7 +437,7 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
                   onFocus={() => handleFocus(1050)}
                 />
               </View>
-              
+
               <View style={styles.langkahContainer}>
                 <TextInput
                   style={styles.langkahTextInput}
@@ -460,12 +474,12 @@ const [headerTitle1, setHeaderTitle1] = useState("LOREM IPSUM ODOR AMET, CONSECT
               />
             </View>
           </ViewShot>
-          
+
           {/* Save Button - Outside ViewShot */}
           <TouchableOpacity style={styles.saveButton} onPress={saveToGallery}>
             <Text style={styles.saveButtonText}>SIMPAN KE GALERI</Text>
           </TouchableOpacity>
-          
+
           {/* Help text */}
           <Text style={styles.helpText}>
             Ketuk area gambar untuk memilih dari galeri.{"\n"}
