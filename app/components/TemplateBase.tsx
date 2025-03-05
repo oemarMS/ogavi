@@ -292,7 +292,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
                   multiline={true}
                   textAlignVertical="center"
                   textAlign="center"
-                  blurOnSubmit={true}
+                  submitBehavior="newline"
                   onBlur={() => Keyboard.dismiss()}
                   onFocus={handleFocus}
                 />

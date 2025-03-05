@@ -421,7 +421,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
         multiline={true}
         textAlignVertical="center"
         textAlign="center"
-        blurOnSubmit={true}
+        submitBehavior="newline"
       />
     </View>
   );
@@ -472,7 +472,7 @@ const TemplateImgQuad: React.FC<TemplateImgQuadProps> = ({
                 placeholderTextColor="gray"
                 multiline={true}
                 textAlignVertical="center"
-                blurOnSubmit={false}
+                submitBehavior="newline"
                 returnKeyType="default"
                 onBlur={() => Keyboard.dismiss()}
                 onFocus={handleFocus}
@@ -765,8 +765,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     padding: wp("2%"),
     width: "100%",
-    marginBottom: hp("2%"),
-    minHeight: hp("5%"),
+    marginBottom: hp("1%"),
   },
   captionText: {
     fontFamily: "RobotoBold",

@@ -318,7 +318,7 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
                       multiline={true}
                       textAlignVertical="center"
                       textAlign="center"
-                      blurOnSubmit={true}
+                      submitBehavior="newline"
                       onBlur={() => Keyboard.dismiss()}
                       onFocus={handleFocus}
                       ref={inputRef}
@@ -359,7 +359,7 @@ const TemplateDualCaption: React.FC<TemplateDualCaptionProps> = ({
                       multiline={true}
                       textAlignVertical="center"
                       textAlign="center"
-                      blurOnSubmit={true}
+                      submitBehavior="newline"
                       onBlur={() => Keyboard.dismiss()}
                       onFocus={handleFocus}
                     />

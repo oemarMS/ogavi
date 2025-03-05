@@ -414,7 +414,7 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                 placeholderTextColor="gray"
                 multiline={true}
                 textAlignVertical="center"
-                blurOnSubmit={false}
+                submitBehavior="newline"
                 returnKeyType="default"
                 onBlur={() => Keyboard.dismiss()}
                 onFocus={handleFocus}
@@ -465,7 +465,7 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                       multiline={true}
                       textAlignVertical="center"
                       textAlign="center"
-                      blurOnSubmit={true}
+                      submitBehavior="newline"
                       returnKeyType="default"
                       onBlur={() => Keyboard.dismiss()}
                     />
@@ -495,7 +495,7 @@ const TemplateImgDual: React.FC<TemplateImgDualProps> = ({
                       multiline={true}
                       textAlignVertical="center"
                       textAlign="center"
-                      blurOnSubmit={true}
+                      submitBehavior="newline"
                       returnKeyType="default"
                       onBlur={() => Keyboard.dismiss()}
                     />
@@ -612,6 +612,7 @@ const styles = StyleSheet.create({
     fontFamily: "RobotoBold",
     fontSize: RFValue(14, 812),
     marginBottom: hp("1%"),
+    alignSelf: "center",
     color: "#333",
   },
   formatOptions: {
@@ -727,11 +728,12 @@ const styles = StyleSheet.create({
     padding: wp("2%"),
     width: "100%",
     marginBottom: hp("1%"),
-    minHeight: hp("5%"),
   },
   captionText: {
     fontFamily: "RobotoBold",
     textAlign: "center",
+    alignItems: "center",
+    
   },
   imagesRow: {
     flexDirection: "row",

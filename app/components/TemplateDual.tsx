@@ -331,7 +331,7 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
                   multiline={true}
                   textAlignVertical="center"
                   textAlign="center"
-                  blurOnSubmit={true}
+                  submitBehavior="newline"
                   onBlur={() => Keyboard.dismiss()}
                   onFocus={handleFocus}
                 />
