@@ -409,7 +409,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
   
       // Step 1: Create a version of the video with padding at the bottom for caption
       setProcessingStatus("Menambahkan padding ke video...");
-      const paddingCommand = `-i "${selectedVideo.uri}" -vf "pad=iw:ih+${videoCaptionHeight}:0:0:black" -c:a copy "${tempVideoPath}"`;
+      const paddingCommand = `-i "${selectedVideo.uri}" -vf "pad=iw:ih+${videoCaptionHeight}:0:0:black" -pix_fmt yuv420p -b:v 8M -maxrate 10M -bufsize 20M -c:a copy "${tempVideoPath}"`;
       console.log("FFmpeg Padding Command:", paddingCommand);
       
       const paddingSession = await FFmpegKit.execute(paddingCommand);
@@ -428,7 +428,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       
       // Step 3: Overlay the red background at the bottom of the padded video
       setProcessingStatus("Menambahkan background merah ke video...");
-      const overlayCommand = `-i "${tempVideoPath}" -i "${redBackgroundPath}" -filter_complex "[0:v][1:v]overlay=0:H-h" -c:a copy "${tempWithRedPath}"`;
+      const overlayCommand = `-i "${tempVideoPath}" -i "${redBackgroundPath}" -filter_complex "[0:v][1:v]overlay=0:H-h" -pix_fmt yuv420p -b:v 8M -maxrate 10M -bufsize 20M -c:a copy "${tempWithRedPath}"`;
       console.log("FFmpeg Red Background Overlay Command:", overlayCommand);
       
       const overlaySession = await FFmpegKit.execute(overlayCommand);
@@ -457,7 +457,7 @@ const TemplateVideo: React.FC<TemplateVideoProps> = ({
       
       // Step 5: Final composition - overlay the properly sized caption on top of the red background
       setProcessingStatus("Menggabungkan caption dengan video...");
-      const finalCommand = `-i "${tempWithRedPath}" -i "${captionResizedPath}" -filter_complex "[0:v][1:v]overlay=0:H-h" -c:a copy "${outputPath}"`;
+      const finalCommand = `-i "${tempWithRedPath}" -i "${captionResizedPath}" -filter_complex "[0:v][1:v]overlay=0:H-h,scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -b:v 8M -maxrate 10M -bufsize 20M -c:a copy -map_metadata -1 "${outputPath}"`;
       console.log("FFmpeg Final Composition Command:", finalCommand);
       
       const finalSession = await FFmpegKit.execute(finalCommand);
