@@ -412,7 +412,7 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
               </Text>
               <Slider
                 style={styles.slider}
-                minimumValue={10}
+                minimumValue={1}
                 maximumValue={60}
                 step={1}
                 value={fontSize}
