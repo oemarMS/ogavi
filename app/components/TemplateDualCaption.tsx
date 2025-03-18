@@ -571,13 +571,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("2%"),
   },
   viewShot: {
-    width: wp("90%"),
+    width: wp("100%"),
+    alignContent: "center",
+    alignItems: "center",
   },
   dualImageContainer: {
-    width: "100%",
+    width: wp("98%"),
     borderWidth: 1,
     borderColor: "#ccc",
     padding: wp("1%"),
+    flexDirection: "column",
     backgroundColor: "#fff",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -619,7 +622,6 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
     width: "100%",
-    minHeight: hp("5%"),
     flexGrow: 1,
   },
   controlsContainer: {

@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("2%"),
   },
   dualImageContainer: {
-    width: wp("90%"),
+    width: wp("98%"),
     borderWidth: 1,
     borderColor: "#ccc",
     padding: wp("1%"),
@@ -662,7 +662,6 @@ const styles = StyleSheet.create({
     padding: wp("2%"),
     fontStyle: "normal",
     maxHeight: hp("20%"),
-    //minHeight: hp("5%"),
     textAlign: "center",
   },
   saveButton: {
