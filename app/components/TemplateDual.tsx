@@ -246,6 +246,16 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
     );
   }
 
+  // Fungsi untuk menghitung tinggi placeholder berdasarkan aspect ratio dan width container
+  const calculateHeight = () => {
+    const containerWidth = orientation === "landscape" 
+      ? wp("39%") // Kurangi sedikit untuk margin antar gambar
+      : wp("44%");
+      
+    // Hitung tinggi yang sesuai berdasarkan aspek rasio
+    return containerWidth / aspectRatio;
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -285,11 +295,25 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
                     {leftImage ? (
                       <Image
                         source={{ uri: leftImage.uri }}
-                        style={[styles.placeholder, { aspectRatio }]}
+                        style={[
+                          styles.imageContent,
+                          {
+                            height: calculateHeight(),
+                            width: "100%",
+                          }
+                        ]}
                         resizeMode="cover"
                       />
                     ) : (
-                      <View style={[styles.placeholder, { aspectRatio }]}>
+                      <View 
+                        style={[
+                          styles.placeholder, 
+                          {
+                            height: calculateHeight(),
+                            width: "100%",
+                          }
+                        ]}
+                      >
                         <Text style={styles.placeholderText}>
                           Pilih Gambar Kiri
                         </Text>
@@ -301,11 +325,25 @@ const TemplateDual: React.FC<TemplateDualProps> = ({
                     {rightImage ? (
                       <Image
                         source={{ uri: rightImage.uri }}
-                        style={[styles.placeholder, { aspectRatio }]}
+                        style={[
+                          styles.imageContent,
+                          {
+                            height: calculateHeight(),
+                            width: "100%",
+                          }
+                        ]}
                         resizeMode="cover"
                       />
                     ) : (
-                      <View style={[styles.placeholder, { aspectRatio }]}>
+                      <View 
+                        style={[
+                          styles.placeholder,
+                          {
+                            height: calculateHeight(),
+                            width: "100%",
+                          }
+                        ]}
+                      >
                         <Text style={styles.placeholderText}>
                           Pilih Gambar Kanan
                         </Text>
@@ -574,14 +612,21 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: "49%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageContent: {
+    // Size ditentukan secara dinamis
+    borderWidth: 1,
+    borderColor: "#eee",
   },
   placeholder: {
-    width: "100%",
+    // Size ditentukan secara dinamis
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "center",
-    minHeight: hp("20%"),
+    borderWidth: 1,
+    borderColor: "#eee",
   },
   buttonContainer: {
     flexDirection: "row",
@@ -617,7 +662,7 @@ const styles = StyleSheet.create({
     padding: wp("2%"),
     fontStyle: "normal",
     maxHeight: hp("20%"),
-    minHeight: hp("5%"),
+    //minHeight: hp("5%"),
     textAlign: "center",
   },
   saveButton: {
