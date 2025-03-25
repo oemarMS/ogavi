@@ -33,12 +33,12 @@ export default function Layout() {
           title: "Template 8 - Template Video",
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="optionaltemplate"
         options={{
           title: "Template Opsional",
         }}
-      />
+      /> */}
     </Stack>
   );
 }
