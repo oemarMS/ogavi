@@ -41,7 +41,7 @@ export default function AboutScreen() {
             { color: colorScheme === "dark" ? "#e0e0e0" : "#555" },
           ]}
         >
-          Aplikasi Pengeditan Foto dengan Caption
+          Aplikasi Pengeditan Foto dan Video dengan Caption
         </Text>
 
         <View
@@ -56,11 +56,11 @@ export default function AboutScreen() {
             { color: colorScheme === "dark" ? "#e0e0e0" : "#000" },
           ]}
         >
-          Ogavi adalah sebuah aplikasi pengeditan foto yang memungkinkan
+          Ogavi -Olah Gambar dan Video- adalah sebuah aplikasi pengeditan foto dan video yang memungkinkan
           pengguna untuk dengan mudah menambahkan caption atau keterangan pada
-          foto-foto mereka. Dengan Ogavi, Anda dapat mengambil foto dari galeri
+          foto-foto dan video-video mereka. Dengan Ogavi, Anda dapat mengambil foto dari galeri
           perangkat, menuliskan caption yang diinginkan pada kotak teks yang
-          tersedia di bawah foto, dan menyimpan foto tersebut kembali ke galeri
+          tersedia di bawah foto atau video, dan menyimpan foto atau video tersebut kembali ke galeri
           dengan caption yang telah terintegrasi secara permanen.
         </Text>
 
@@ -71,8 +71,8 @@ export default function AboutScreen() {
           ]}
         >
           Aplikasi ini sangat cocok bagi pengguna yang ingin memberikan judul,
-          deskripsi, atau keterangan tambahan pada foto-foto mereka, baik itu
-          foto liburan, makanan, momen spesial, atau foto lainnya yang ingin
+          deskripsi, atau keterangan tambahan pada foto-foto maupun video-video mereka, baik itu
+          liburan, makanan, momen spesial, atau foto dan video lainnya untuk
           dibagikan dengan caption yang menarik.
         </Text>
 
@@ -117,6 +117,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 18,
+    textAlign: "center",
   },
   separator: {
     marginVertical: 20,
