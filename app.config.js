@@ -11,6 +11,9 @@ module.exports = {
       targetSdkVersion: 35,
       minSdkVersion: 26
     },
+    extra: {
+  eas: { projectId: "7b1e5768-aeb4-4e12-8b16-29eaf1cfdae9" }
+},
     plugins: [
       ["expo-build-properties", {
         android: {
