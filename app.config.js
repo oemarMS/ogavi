@@ -6,10 +6,7 @@ module.exports = {
     version: "1.0.1",
     android: {
       package: "com.oemarms.Ogavi",
-      versionCode: 13,
-      compileSdkVersion: 35,
-      targetSdkVersion: 35,
-      minSdkVersion: 26
+      versionCode: 15,
     },
     plugins: [
       ["expo-build-properties", {
