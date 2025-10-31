@@ -19,7 +19,7 @@
     "@types/color": "^4.2.0",
     "expo": "^52.0.37",
     "expo-av": "^15.0.2",
-    "expo-build-properties": "~0.13.2",
+    "expo-build-properties": "^1.0.9",
     "expo-dev-client": "~5.0.12",
     "expo-file-system": "^18.0.11",
     "expo-font": "~13.0.3",
