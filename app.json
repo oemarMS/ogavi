@@ -23,7 +23,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.oemarms.Ogavi",
-      "versionCode": 13,
+      "versionCode": 14,
       "compileSdkVersion": 35,
       "targetSdkVersion": 35,
       "minSdkVersion": 24

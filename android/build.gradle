@@ -13,6 +13,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://maven.arthenica.com/releases' }   // <— TAMBAH INI
     }
     dependencies {
         classpath('com.android.tools.build:gradle')
@@ -36,6 +37,7 @@ allprojects {
 
         google()
         mavenCentral()
+        maven { url 'https://maven.arthenica.com/releases' }   // <— TAMBAH INI
         maven { url 'https://www.jitpack.io' }
     }
 }
