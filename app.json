@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ogavi",
     "slug": "Ogavi",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/appicononly.png",
     "scheme": "myapp",
@@ -23,7 +23,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.oemarms.Ogavi",
-      "versionCode": 10,
+      "versionCode": 13,
       "compileSdkVersion": 35,
       "targetSdkVersion": 35,
       "minSdkVersion": 24
@@ -38,14 +38,6 @@
       [
         "expo-build-properties",
         {
-          "android": {
-            "compileSdkVersion": 35,
-           "targetSdkVersion": 35,
-            "buildToolsVersion": "35.0.0",
-            "enableProguardInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true,
-            "useLegacyPackaging": false
-          },
           "ios": {
             "useFrameworks": "static"
           }
