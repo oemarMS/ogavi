@@ -23,7 +23,7 @@ module.exports = {
     
     android: {
       package: "com.oemarms.Ogavi",
-      versionCode: 15,
+      //versionCode: 15,
       compileSdkVersion: 35,
       targetSdkVersion: 35,
       adaptiveIcon: {
