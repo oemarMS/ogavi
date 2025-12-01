@@ -127,14 +127,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
   }, [needsPermission]);
 
   const handleFocus = () => {
-    setTimeout(() => {
-      inputRef.current?.measureInWindow((x, y, width, height) => {
-        scrollViewRef.current?.scrollTo({
-          y: y - hp("10%"),
-          animated: true,
-        });
-      });
-    }, 100);
+
   };
 
   const handleTextChange = (text: string) => {
@@ -244,7 +237,7 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? hp("10%") : 0}
       style={styles.container}
     >
@@ -257,6 +250,8 @@ const TemplateBase: React.FC<TemplateBaseProps> = ({
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"      // BARU - dismiss keyboard saat drag
+        scrollEventThrottle={16}           // BARU - smooth scrolling
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.inner}>
@@ -466,8 +461,9 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: "space-between",
+    //justifyContent: "space-between",
     paddingHorizontal: wp("2%"),
+    paddingBottom: hp("5%"),  // BARU - extra padding buat keyboard
   },
   inner: {
     flex: 1,
