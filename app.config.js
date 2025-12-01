@@ -59,8 +59,8 @@ module.exports = {
               "https://repo1.maven.org/maven2",
               "https://www.jitpack.io"
             ],
-            enableProguardInReleaseBuilds: true,
-            enableShrinkResourcesInReleaseBuilds: true
+            enableProguardInReleaseBuilds: false,
+            enableShrinkResourcesInReleaseBuilds: false
           }
         }
       ]
